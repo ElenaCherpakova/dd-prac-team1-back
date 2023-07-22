@@ -16,13 +16,11 @@ store.on('error', () => {
   console.log(error);
 });
 
-const listener = () => console.log(`Listening on Port ${PORT}...`);
-
 const start = async () => {
   try {
     await connectDB(url);
     // console.log('DB connection established');
-    app.listen(PORT, listener);
+    app.listen(PORT, console.log(`Listening on Port ${PORT}...`));
   } catch (error) {
     console.log(error);
   }
