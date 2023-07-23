@@ -1,7 +1,7 @@
 require('dotenv').config();
 const PORT = process.env.PORT || 8000;
 const app = require('./app');
-const connectDB = require('./db/connect');
+const connectDB = require('../db/connect');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 
