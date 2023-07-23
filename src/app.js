@@ -14,6 +14,7 @@ const helmet = require('helmet');
 
 /*routes*/
 const mainRouter = require('./routes/mainRouter.js');
+const authRouter = require('./routes/auth_routes.js');
 
 /* middleware */
 app.use(cookieParser());
@@ -42,5 +43,6 @@ app.get('/api/v1/test', (req, res) => {
 
 /* routes */
 app.use('/api/v1', mainRouter);
+app.use('/api/v1/auth', authRouter);
 
 module.exports = app;
