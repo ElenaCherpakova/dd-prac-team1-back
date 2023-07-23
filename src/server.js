@@ -6,7 +6,7 @@ const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 
 /* database connection */
-const url = process.env.MONGO_URL;
+const url = process.env.MONGO_URI;
 
 const store = new MongoDBStore({
   uri: url,

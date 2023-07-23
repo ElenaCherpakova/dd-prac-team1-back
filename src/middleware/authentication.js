@@ -12,9 +12,9 @@ const authenticationMiddleware = async (req, res, next) => {
   const token = authHeader.split(' ')[1];
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    const { userId, userName } = payload;
+    const { userId, username } = payload;
     // attach the user to the recipe routes
-    req.user = { userId, userName };
+    req.user = { userId, username };
     next();
   } catch (err) {
     throw new Unauthenticated('Authentication invalid');
