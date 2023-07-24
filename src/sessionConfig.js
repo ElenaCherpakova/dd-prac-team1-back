@@ -16,7 +16,7 @@ const session_params = {
   saveUninitialized: true,
   store: store,
   cookie: {
-    secure: false,
+    secure: false, // once we deploy(in production) set to true
     sameSite: 'strict',
   },
 };
