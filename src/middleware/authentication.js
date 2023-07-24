@@ -1,13 +1,12 @@
-const User = require('./models/User');
+// const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-
-const { Unauthenticated } = require('../errors');
+const { UnauthenticatedError } = require('../errors');
 
 const authenticationMiddleware = async (req, res, next) => {
   // check header
-  const authHeader = req.header.authorization;
+  const authHeader = req.headers.authorization; // Fix the typo here
   if (!authHeader || !authHeader.startsWith('Bearer')) {
-    throw new Unauthenticated('Authentication invalid');
+    throw new UnauthenticatedError('Authentication invalid');
   }
   const token = authHeader.split(' ')[1];
   try {
@@ -17,7 +16,7 @@ const authenticationMiddleware = async (req, res, next) => {
     req.user = { userId, username };
     next();
   } catch (err) {
-    throw new Unauthenticated('Authentication invalid');
+    throw new UnauthenticatedError('Authentication invalid');
   }
 };
 

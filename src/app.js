@@ -3,7 +3,9 @@ require('express-async-errors');
 require('dotenv').config();
 const express = require('express');
 const app = express();
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const session_params = require('./sessionConfig');
 
 /*security packages*/
 const cors = require('cors');
@@ -32,6 +34,8 @@ app.use(
 
 app.use(express.static('public'));
 app.use(favicon(__dirname + '/public/favicon.ico'));
+
+app.use(session(session_params));
 
 app.get('/', (req, res) => {
   res.send('Hello World');
