@@ -9,7 +9,7 @@ const fetchApiRecipe = async (req, res) => {
   if (!query || !query.trim() === '') {
     throw new BadRequestError('Please provide a query.');
   }
-  const assistant = `You are a helpful assistant that has a collection of delightful recipes and generates them based on user input`;
+  const assistant = `You are a helpful assistant that has a collection of recipes and generates them based on user input`;
   const options = {
     method: 'POST',
     headers: {
@@ -26,7 +26,7 @@ const fetchApiRecipe = async (req, res) => {
         },
       ],
       temperature: 1,
-      max_tokens: 350,
+      max_tokens: 500,
       top_p: 1,
       frequency_penalty: 0,
       presence_penalty: 0,
@@ -96,12 +96,8 @@ const fetchApiRecipe = async (req, res) => {
                 description: 'Nutrition information',
               },
               images: {
-                type: 'array',
-                description: 'Images',
-                items: {
-                  type: 'string',
-                  description: 'Image',
-                },
+                type: 'string',
+                description: 'Image URL',
               },
             },
             required: [
@@ -139,7 +135,7 @@ const fetchApiRecipe = async (req, res) => {
                 'Add the pomegranate and salt',
                 'Cook for 30 minutes',
               ],
-              categories: ['salad'],
+              categories: ['salad', 'vegetarian'],
               servingFor: '4',
               prepTimeInSeconds: '10',
               cookTimeInSeconds: '30',
