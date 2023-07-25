@@ -1,30 +1,34 @@
 # Back-End Repo for Node/React Practicum
 
-This will be the API for the front-end React app part of your practicum project.
+This repository contains the backend code for Node/React Practicum. 
+It provides the necessary instructions to set up and run the backend.
 
-These instructions are for the **front-end team** so they can setup their local development environment to run 
-both the back-end server and their front-end app. You can go through these steps during your first group meeting 
-in case you need assistance from your mentors.
+### Running the project
 
->The back-end server will be running on port 8000. The front-end app will be running on port 3000. You will need to run both the back-end server and the front-end app at the same time to test your app.
+1. Clone the repository onto your local device (following steps):
+```
+git clone git@github.com:Code-the-Dream-School/dd-prac-team1-back.git
+cd dd-prac-team1-back
+npm install
+```
+2. Set up Mongo database by installing [MongoDB](https://www.mongodb.com/)
+3. Obtain API key for [OPEN AI](https://platform.openai.com/account/api-keys)
+4. Copy the `.env.example` file and rename it to `.env`: 
+```
+cp .env.example .env
+```
+5. Replace the placeholders with your specific values:
 
-### Setting up local development environment
+```PORT = <your_desired_port_number>
+MONGO_URI = "<your_mongodb_connection_url>"
+JWT_SECRET = <your_unique_jwt_secret_key>
+JWT_LIFETIME = <your_desired_jwt_lifetime>
+SESSION_SECRET = <your_unique_session_secret_key>
+NODE_ENV=<your_environment>
+OPENAI_API_KEY = <your_openai_api_secret_key>
+```
 
-1. Create a folder to contain both the front-end and back-end repos 
-2. Clone this repository to that folder
-3. Run `npm install` to install dependencies
-4. Pull the latest version of the `main` branch (when needed)
-5. Run `npm run dev` to start the development server
-6. Open http://localhost:8000/api/v1/ with your browser to test.
-7. Your back-end server is now running. You can now run the front-end app.
+6. Run `npm run start` to start the development server
+7. The app will be served at <http://localhost:3000/>.
+8. Your back-end server is now running. You can now run the front-end app.
 
-#### Running the back-end server in Visual Studio Code
-
-Note: In the below example, the group's front-end repository was named `bb-practicum-team1-front` and the back-end repository was named `bb-practicum-team-1-back`. Your repository will have a different name, but the rest should look the same.
-![vsc running](images/back-end-running-vsc.png)
-
-#### Testing the back-end server API in the browser
-
-![browser server](images/back-end-running-browser.png)
-
->Update the .node-version file to match the version of Node.js the **team** is using. This is used by Render.com to [deploy the app](https://render.com/docs/node-version).

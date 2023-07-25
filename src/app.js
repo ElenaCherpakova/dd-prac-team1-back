@@ -1,9 +1,13 @@
 /*module setup*/
 require('express-async-errors');
 require('dotenv').config();
+const { Configuration, OpenAIApi } = require('openai');
 const express = require('express');
 const app = express();
-const cookieParser = require('cookie-parser')
+// const axios = require('axios');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const session_params = require('./sessionConfig');
 
 /*security packages*/
 const cors = require('cors');
@@ -11,10 +15,6 @@ const favicon = require('express-favicon');
 const logger = require('morgan');
 const rateLimiter = require('express-rate-limit');
 const helmet = require('helmet');
-
-/*routes*/
-const mainRouter = require('./routes/mainRouter.js');
-const authRouter = require('./routes/auth_routes.js');
 
 /* middleware */
 app.use(cookieParser());
@@ -30,8 +30,17 @@ app.use(
   })
 );
 
+
+
+/*routes*/
+const mainRouter = require('./routes/mainRouter.js');
+const authRouter = require('./routes/auth_routes.js');
+const aiRecipeRouter = require('./routes/apiRecipe_routes')
+
 app.use(express.static('public'));
 app.use(favicon(__dirname + '/public/favicon.ico'));
+
+app.use(session(session_params));
 
 app.get('/', (req, res) => {
   res.send('Hello World');
@@ -44,5 +53,6 @@ app.get('/api/v1/test', (req, res) => {
 /* routes */
 app.use('/api/v1', mainRouter);
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/ai-recipe', aiRecipeRouter);
 
 module.exports = app;
