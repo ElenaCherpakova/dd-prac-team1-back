@@ -12,11 +12,12 @@ cd dd-prac-team1-back
 npm install
 ```
 2. Set up Mongo database by installing [MongoDB](https://www.mongodb.com/)
-3. Copy the `.env.example` file and rename it to `.env`: 
+3. Obtain API key for [OPEN AI](https://platform.openai.com/account/api-keys)
+4. Copy the `.env.example` file and rename it to `.env`: 
 ```
 cp .env.example .env
 ```
-4. Replace the placeholders with your specific values:
+5. Replace the placeholders with your specific values:
 
 ```PORT = <your_desired_port_number>
 MONGO_URI = "<your_mongodb_connection_url>"
@@ -27,7 +28,7 @@ NODE_ENV=<your_environment>
 OPENAI_API_KEY = <your_openai_api_secret_key>
 ```
 
-5. Run `npm run start` to start the development server
-6. The app will be served at <http://localhost:3000/>.
-7. Your back-end server is now running. You can now run the front-end app.
+6. Run `npm run start` to start the development server
+7. The app will be served at <http://localhost:3000/>.
+8. Your back-end server is now running. You can now run the front-end app.
 
