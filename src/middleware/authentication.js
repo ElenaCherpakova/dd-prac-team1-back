@@ -4,7 +4,7 @@ const { UnauthenticatedError } = require('../errors');
 
 const authenticationMiddleware = async (req, res, next) => {
   // check header
-  const authHeader = req.headers.authorization; // Fix the typo here
+  const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer')) {
     throw new UnauthenticatedError('Authentication invalid');
   }

@@ -2,8 +2,6 @@
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError } = require('../errors');
 
-const API_KEY = process.env.OPENAI_API_KEY;
-
 const fetchApiRecipe = async (req, res) => {
   const { query } = req.body;
   if (!query || !query.trim() === '') {
@@ -13,7 +11,7 @@ const fetchApiRecipe = async (req, res) => {
   const options = {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${API_KEY}`,
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
