@@ -24,7 +24,7 @@ const fetchApiRecipe = async (req, res) => {
         },
       ],
       temperature: 1,
-      max_tokens: 500,
+      max_tokens: 600,
       top_p: 1,
       frequency_penalty: 0,
       presence_penalty: 0,
@@ -152,8 +152,36 @@ const fetchApiRecipe = async (req, res) => {
       options
     );
     const { choices } = await response.json();
-    const data = choices[0].message.function_call.arguments;
-    res.status(StatusCodes.OK).send(data);
+    const data = JSON.parse(choices[0].message.function_call.arguments);
+
+    // Generate the image generation prompt with the recipe data
+    const imageGenerationPrompt = `Generate an image of the recipe for ${data.title}.
+`;
+
+    // Use Bing Image Search API to search for images related to the recipe
+    const bingImageOptions = {
+      method: 'GET',
+      headers: {
+        'Ocp-Apim-Subscription-Key': process.env.BING_IMAGE_SEARCH_API_KEY,
+      },
+    };
+    const bingImageResponse = await fetch(
+      `https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURIComponent(
+        imageGenerationPrompt
+      )}`,
+      bingImageOptions
+    );
+
+    const bingImageData = await bingImageResponse.json();
+    const imageUrl =
+      bingImageData.value && bingImageData.value.length > 0
+        ? bingImageData.value[0].contentUrl
+        : '';
+    const responseData = {
+      ...data,
+      imageUrl,
+    };
+    res.status(StatusCodes.OK).send(responseData);
   } catch (err) {
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
