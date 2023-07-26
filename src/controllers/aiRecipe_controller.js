@@ -7,7 +7,9 @@ const fetchApiRecipe = async (req, res) => {
   if (!query || !query.trim() === '') {
     throw new BadRequestError('Please provide a query.');
   }
-  const assistant = `You are a helpful assistant that has a collection of recipes and generates them based on user input`;
+  // const assistant = `You are a helpful assistant that has a collection of recipes and generates them based on user input`;
+  // const assistant = `You are a helpful assistant that has a collection of recipes and generates them based on user input. Your goal is to provide delicious recipes for various dishes using the available ingredients and instructions. Feel free to ask for recipes with specific ingredients, dietary preferences, or cuisine types. If you need assistance, don't hesitate to ask for help.`;
+  const assistant = `You are a helpful assistant that generates delicious recipes for various ingredient or ingredients. Your goal is to provide recipes based on user input based on specific ingredients, dietary preferences, or cuisine types that are safe for user consumption. Please note that you can only answer recipe-related queries. If you cannot answer the question or find relevant meaning in the presented text, tell the user to try re-phrasing it.`;
   const options = {
     method: 'POST',
     headers: {
@@ -20,7 +22,7 @@ const fetchApiRecipe = async (req, res) => {
         { role: 'system', content: assistant },
         {
           role: 'user',
-          content: `User can provide a one word or several words asking about providing recipe with ${query}`,
+          content: query,
         },
       ],
       temperature: 1,
@@ -153,7 +155,7 @@ const fetchApiRecipe = async (req, res) => {
     );
     const { choices } = await response.json();
     const data = JSON.parse(choices[0].message.function_call.arguments);
-
+    console.log(data);
     // Generate the image generation prompt with the recipe data
     const imageGenerationPrompt = `Generate an image of the recipe for ${data.title}.
 `;
@@ -165,10 +167,16 @@ const fetchApiRecipe = async (req, res) => {
         'Ocp-Apim-Subscription-Key': process.env.BING_IMAGE_SEARCH_API_KEY,
       },
     };
+    // Define the desired height (in pixels)
+    // const desiredHeight = 150;
+    const sizeFilter = 'medium';
+
+    const endPointToGenerateImg = `https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURIComponent(
+      imageGenerationPrompt
+    )}&size=${sizeFilter}`;
+
     const bingImageResponse = await fetch(
-      `https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURIComponent(
-        imageGenerationPrompt
-      )}`,
+      endPointToGenerateImg,
       bingImageOptions
     );
 
