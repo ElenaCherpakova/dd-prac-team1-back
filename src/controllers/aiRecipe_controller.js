@@ -4,12 +4,11 @@ const { BadRequestError } = require('../errors');
 
 const fetchApiRecipe = async (req, res) => {
   const { query } = req.body;
+
   if (!query || !query.trim() === '') {
     throw new BadRequestError('Please provide a query.');
   }
-  // const assistant = `You are a helpful assistant that has a collection of recipes and generates them based on user input`;
-  // const assistant = `You are a helpful assistant that has a collection of recipes and generates them based on user input. Your goal is to provide delicious recipes for various dishes using the available ingredients and instructions. Feel free to ask for recipes with specific ingredients, dietary preferences, or cuisine types. If you need assistance, don't hesitate to ask for help.`;
-  const assistant = `You are a helpful assistant that generates delicious recipes for various ingredient or ingredients. Your goal is to provide recipes based on user input based on specific ingredients, dietary preferences, or cuisine types that are safe for user consumption. Please note that you can only answer recipe-related queries. If you cannot answer the question or find relevant meaning in the presented text, tell the user to try re-phrasing it.`;
+  const assistant = `You are a helpful assistant that generates delicious recipes for various ingredients. Your goal is to provide unique recipes based on user input, considering specific ingredients, dietary preferences, or cuisine types that are safe for human consumption. Please note that you can only answer recipe-related queries. If you cannot find a relevant meaning in the presented text, please ask the user to try re-phrasing the question.`;
   const options = {
     method: 'POST',
     headers: {
@@ -22,7 +21,7 @@ const fetchApiRecipe = async (req, res) => {
         { role: 'system', content: assistant },
         {
           role: 'user',
-          content: query,
+          content: `User receives a recipe based on following ingredient: ${query}`,
         },
       ],
       temperature: 1,

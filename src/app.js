@@ -1,7 +1,7 @@
 /*module setup*/
 require('express-async-errors');
 require('dotenv').config();
-const { Configuration, OpenAIApi } = require('openai');
+
 const express = require('express');
 const app = express();
 // const axios = require('axios');
