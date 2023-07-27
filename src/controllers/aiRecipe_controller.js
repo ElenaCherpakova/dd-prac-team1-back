@@ -4,10 +4,11 @@ const { BadRequestError } = require('../errors');
 
 const fetchApiRecipe = async (req, res) => {
   const { query } = req.body;
+
   if (!query || !query.trim() === '') {
     throw new BadRequestError('Please provide a query.');
   }
-  const assistant = `You are a helpful assistant that has a collection of recipes and generates them based on user input`;
+  const assistant = `You are a helpful assistant that generates delicious recipes for various ingredients. Your goal is to provide unique recipes based on user input, considering specific ingredients, dietary preferences, or cuisine types that are safe for human consumption. Please do not provide recipes that are poisonous, such as fly agaric. Please note that you can only answer recipe-related queries. If you cannot find a relevant meaning in the presented text, please ask the user to try re-phrasing the question.`;
   const options = {
     method: 'POST',
     headers: {
@@ -20,11 +21,11 @@ const fetchApiRecipe = async (req, res) => {
         { role: 'system', content: assistant },
         {
           role: 'user',
-          content: `User can provide a one word or several words asking about providing recipe with ${query}`,
+          content: `User receives a recipe based on following ingredient: ${query}`,
         },
       ],
       temperature: 1,
-      max_tokens: 500,
+      max_tokens: 600,
       top_p: 1,
       frequency_penalty: 0,
       presence_penalty: 0,
@@ -152,8 +153,42 @@ const fetchApiRecipe = async (req, res) => {
       options
     );
     const { choices } = await response.json();
-    const data = choices[0].message.function_call.arguments;
-    res.status(StatusCodes.OK).send(data);
+    const data = JSON.parse(choices[0].message.function_call.arguments);
+    console.log(data);
+    // Generate the image generation prompt with the recipe data
+    const imageGenerationPrompt = `Generate an image of the recipe for ${data.title}.
+`;
+
+    // Use Bing Image Search API to search for images related to the recipe
+    const bingImageOptions = {
+      method: 'GET',
+      headers: {
+        'Ocp-Apim-Subscription-Key': process.env.BING_IMAGE_SEARCH_API_KEY,
+      },
+    };
+    // Define the desired height (in pixels)
+    // const desiredHeight = 150;
+    const sizeFilter = 'medium';
+
+    const endPointToGenerateImg = `https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURIComponent(
+      imageGenerationPrompt
+    )}&size=${sizeFilter}`;
+
+    const bingImageResponse = await fetch(
+      endPointToGenerateImg,
+      bingImageOptions
+    );
+
+    const bingImageData = await bingImageResponse.json();
+    const imageUrl =
+      bingImageData.value && bingImageData.value.length > 0
+        ? bingImageData.value[0].contentUrl
+        : '';
+    const responseData = {
+      ...data,
+      imageUrl,
+    };
+    res.status(StatusCodes.OK).send(responseData);
   } catch (err) {
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
