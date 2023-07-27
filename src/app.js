@@ -18,7 +18,10 @@ const helmet = require('helmet');
 
 /* middleware */
 app.use(cookieParser());
-app.use(logger('dev'));
+if (process.env.NODE_ENV === 'development') {
+  app.use(logger('dev'));
+}
+// app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
@@ -30,12 +33,10 @@ app.use(
   })
 );
 
-
-
 /*routes*/
 const mainRouter = require('./routes/mainRouter.js');
 const authRouter = require('./routes/auth_routes.js');
-const aiRecipeRouter = require('./routes/apiRecipe_routes')
+const aiRecipeRouter = require('./routes/apiRecipe_routes');
 
 app.use(express.static('public'));
 app.use(favicon(__dirname + '/public/favicon.ico'));
