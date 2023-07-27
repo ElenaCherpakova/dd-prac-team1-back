@@ -138,10 +138,11 @@ const RecipeSchema = new mongoose.Schema(
     image: {
       type: String,
     },
-    favoritedBy: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
+    createdBy: [
+      { 
+        type: mongoose.Types.ObjectId,
         ref: 'User',
+        required: [true, 'Please provide user'],
       },
     ],
   },
