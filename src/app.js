@@ -57,8 +57,7 @@ app.get('/api/v1/test', (req, res) => {
 /* routes */
 app.use('/api/v1', mainRouter);
 app.use('/api/v1/auth', authRouter);
-// app.use('/api/v1/ai-recipe', authMiddleware, aiRecipeRouter); - UNCOMMENT THIS OUT ONCE FINISH LOGIC WITH OPEN AI
-app.use('/api/v1/ai-recipe', aiRecipeRouter); // DELETE IT AFTER UNCOMMENT ABOVE LINE
+app.use('/api/v1/ai-recipe', authMiddleware, aiRecipeRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
