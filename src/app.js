@@ -59,6 +59,7 @@ app.use('/api/v1', mainRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/ai-recipe', authMiddleware, aiRecipeRouter);
 
+
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
