@@ -37,6 +37,9 @@ app.use(
 const mainRouter = require('./routes/mainRouter.js');
 const authRouter = require('./routes/auth_routes.js');
 const aiRecipeRouter = require('./routes/apiRecipe_routes');
+const authMiddleware = require('./middleware/authentication');
+const notFoundMiddleware = require('./middleware/not-found');
+const errorHandlerMiddleware = require('./middleware/error-handler');
 
 app.use(express.static('public'));
 app.use(favicon(__dirname + '/public/favicon.ico'));
@@ -54,6 +57,10 @@ app.get('/api/v1/test', (req, res) => {
 /* routes */
 app.use('/api/v1', mainRouter);
 app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/ai-recipe', aiRecipeRouter);
+app.use('/api/v1/ai-recipe', authMiddleware, aiRecipeRouter);
+
+
+app.use(notFoundMiddleware);
+app.use(errorHandlerMiddleware);
 
 module.exports = app;

@@ -5,7 +5,7 @@ const { BadRequestError } = require('../errors');
 const fetchApiRecipe = async (req, res) => {
   const { query } = req.body;
 
-  if (!query || !query.trim() === '') {
+  if (!query || query.trim() === '') {
     throw new BadRequestError('Please provide a query.');
   }
   const assistant = `You are a helpful assistant that generates delicious recipes for various ingredients. Your goal is to provide unique recipes based on user input, considering specific ingredients, dietary preferences, or cuisine types that are safe for human consumption. Please do not provide recipes that are poisonous, such as fly agaric. Please note that you can only answer recipe-related queries. If you cannot find a relevant meaning in the presented text, please ask the user to try re-phrasing the question.`;
