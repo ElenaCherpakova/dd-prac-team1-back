@@ -19,7 +19,12 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Please provide your password'],
-    minlength: 8,
+    validate: {
+      validator: function (password) {
+        return password.length >= 8;
+      },
+      message: 'Password should be at least 8 characters long',
+    },
   },
 });
 
@@ -34,11 +39,6 @@ UserSchema.methods.createJWT = function () {
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_LIFETIME }
   );
-};
-
-UserSchema.methods.comparePassword = async function (candidatePassword) {
-  const isMatch = await bcrypt.compare(candidatePassword, this.password);
-  return isMatch;
 };
 
 module.exports = mongoose.model('User', UserSchema);
