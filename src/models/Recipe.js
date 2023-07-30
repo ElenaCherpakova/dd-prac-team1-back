@@ -12,7 +12,7 @@ const ingredientSchema = new mongoose.Schema({
   unit: {
     type: String,
     enum: ['kg', 'g', 'lbs', 'cups', 'tbs', 'tbsp', 'OtherUnit'],
-    required: true,
+    //required: true,
   },
 });
 
@@ -36,7 +36,7 @@ const RecipeSchema = new mongoose.Schema(
     servings: {
       type: Number,
       default: 1,
-      required: [true, 'Please provide the serving size'],
+      //required: [true, 'Please provide the serving size'],
       validate: {
         validator: Number.isInteger,
         message: 'Servings must be an integer.',
@@ -142,7 +142,6 @@ const RecipeSchema = new mongoose.Schema(
       { 
         type: mongoose.Types.ObjectId,
         ref: 'User',
-        required: [true, 'Please provide user'],
       },
     ],
   },
