@@ -3,23 +3,18 @@ const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, UnauthenticatedError } = require('../errors');
 
 const register = async (req, res) => {
-  const { username, email, password, confirmPassword } = req.body;
-console.log(req.body)
-  if (password !== confirmPassword) {
-    throw new BadRequestError('The passwords entered do not match.');
-  }
+  const { username, email, password } = req.body;
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    throw new BadRequestError('That email address is already registered.');
+    throw new BadRequestError('The email address you entered is already taken.');
   }
 
-  const user = await User.create({ ...req.body });
+  const user = await User.create({ username, email, password });
   const token = user.createJWT();
-  res
-    .status(StatusCodes.CREATED)
-    .json({ user: { username: user.username }, token });
+  res.status(StatusCodes.CREATED).json({ user: { username: user.username }, token });
 };
+
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -30,14 +25,14 @@ const login = async (req, res) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    throw new UnauthenticatedError('Invalid credentials');
+    throw new UnauthenticatedError('Invalid email');
   }
 
   const isPasswordCorrect = await user.comparePassword(password);
   if (!isPasswordCorrect) {
     throw new UnauthenticatedError('Invalid password');
   }
-  // compare password
+
   const token = user.createJWT();
   res.status(StatusCodes.OK).json({ user: { email: user.email }, token });
 };

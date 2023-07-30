@@ -5,28 +5,26 @@ const jwt = require('jsonwebtoken');
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: [true, 'Please provide your Username'],
-    minlength: 2,
-    maxlength: 50,
+    required: [true, 'Please enter your name'],
   },
   email: {
     type: String,
-    required: [true, 'Please provide your email'],
+    required: [true, 'Please enter your email'],
     match: [
       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-      'Please provide valid email',
+      'Please enter a valid email address in this format: name@example.com',
     ],
-    unique: true,
+    // unique: 'The email address you entered is already taken.',
   },
   password: {
     type: String,
     required: [true, 'Please provide your password'],
-    minlength: 6,
-    // SECURITY
-    match: [
-      /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$&*])(?=.{8,})/,
-      'Passwords must have at least 6 characters with at least one lower case letter, at least one upper case letter, at least one number, and at least one of the characters ! @ # $ & * . ',
-    ],
+    validate: {
+      validator: function (password) {
+        return password.length >= 8;
+      },
+      message: 'Password should be at least 8 characters long',
+    },
   },
 });
 
@@ -41,11 +39,6 @@ UserSchema.methods.createJWT = function () {
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_LIFETIME }
   );
-};
-
-UserSchema.methods.comparePassword = async function (candidatePassword) {
-  const isMatch = await bcrypt.compare(candidatePassword, this.password);
-  return isMatch;
 };
 
 module.exports = mongoose.model('User', UserSchema);
