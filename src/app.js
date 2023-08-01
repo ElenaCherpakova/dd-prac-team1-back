@@ -4,7 +4,6 @@ require('dotenv').config();
 
 const express = require('express');
 const app = express();
-// const axios = require('axios');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const session_params = require('./sessionConfig');
@@ -14,6 +13,8 @@ const cors = require('cors');
 const favicon = require('express-favicon');
 const logger = require('morgan');
 const rateLimiter = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+
 const helmet = require('helmet');
 
 /* middleware */
@@ -25,6 +26,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
+app.use(mongoSanitize());
 app.use(helmet());
 app.use(
   rateLimiter({
@@ -58,7 +60,6 @@ app.get('/api/v1/test', (req, res) => {
 app.use('/api/v1', mainRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/ai-recipe', authMiddleware, aiRecipeRouter);
-
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
