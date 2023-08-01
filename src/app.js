@@ -14,26 +14,7 @@ const favicon = require('express-favicon');
 const logger = require('morgan');
 const rateLimiter = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
-
 const helmet = require('helmet');
-
-/* middleware */
-app.use(cookieParser());
-if (process.env.NODE_ENV === 'development') {
-  app.use(logger('dev'));
-}
-// app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cors());
-app.use(mongoSanitize());
-app.use(helmet());
-app.use(
-  rateLimiter({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-  })
-);
 
 /*routes*/
 const mainRouter = require('./routes/mainRouter.js');
@@ -42,6 +23,24 @@ const aiRecipeRouter = require('./routes/apiRecipe_routes');
 const authMiddleware = require('./middleware/authentication');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
+
+/* middleware */
+app.use(
+  rateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+  })
+);
+
+app.use(helmet());
+app.use(cors());
+app.use(mongoSanitize());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+if (process.env.NODE_ENV === 'development') {
+  app.use(logger('dev'));
+}
 
 app.use(express.static('public'));
 app.use(favicon(__dirname + '/public/favicon.ico'));
