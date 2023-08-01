@@ -1,5 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 
+MONGO_ERR_DUPLICATE_ENTRY = 11000;
+
 const errorHandlerMiddleware = (err, req, res, next) => {
   let customError = {
     //set default
@@ -12,7 +14,7 @@ const errorHandlerMiddleware = (err, req, res, next) => {
       .join(',');
     customError.statusCode = 400;
   }
-  if (err.code && err.code === 11000) {
+  if (err.code && err.code === MONGO_ERR_DUPLICATE_ENTRY) {
     customError.msg = `Duplicate value entered value for ${Object.keys(
       err.keyValue
     )} field, please choose another value`;

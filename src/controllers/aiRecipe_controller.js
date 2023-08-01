@@ -1,6 +1,8 @@
 /* OpenAI API */
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError } = require('../errors');
+const myRecipePrompt = require('../prompts/recipePrompt');
+const generateImagePrompt = require('../prompts/generateImagePrompt');
 
 const fetchApiRecipe = async (req, res) => {
   const { query } = req.body;
@@ -24,127 +26,12 @@ const fetchApiRecipe = async (req, res) => {
           content: `User receives a recipe based on following ingredient: ${query}`,
         },
       ],
-      temperature: 1,
+      temperature: 0.3,
       max_tokens: 600,
       top_p: 1,
       frequency_penalty: 0,
       presence_penalty: 0,
-      functions: [
-        {
-          name: 'recipe',
-          description: 'This function generates a recipe based on user input',
-          parameters: {
-            type: 'object',
-            properties: {
-              title: {
-                type: 'string',
-                description:
-                  'You are a helpful assistant that generates cooking recipes',
-              },
-              ingredients: {
-                type: 'array',
-                description: 'Ingredients',
-                items: {
-                  type: 'object',
-                  properties: {
-                    name: {
-                      type: 'string',
-                      description: 'Ingredient name',
-                    },
-                    quantity: {
-                      type: 'string',
-                      description: 'Ingredient quantity',
-                    },
-                  },
-                },
-              },
-              instructions: {
-                type: 'array',
-                description: 'Instructions',
-                items: {
-                  type: 'string',
-                  description: 'Instruction',
-                },
-              },
-              categories: {
-                type: 'array',
-                description: 'Categories',
-                items: {
-                  type: 'string',
-                  description: 'Category',
-                },
-              },
-              servingFor: {
-                type: 'string',
-                description: 'Serving for',
-              },
-              prepTimeInSeconds: {
-                type: 'string',
-                description: 'Preparing time in minutes',
-              },
-              cookTimeInSeconds: {
-                type: 'string',
-                description: 'Cooking time in minutes',
-              },
-              totalTimeInSeconds: {
-                type: 'string',
-                description: 'Total time in minutes',
-              },
-              nutritionInformation: {
-                type: 'string',
-                description: 'Nutrition information',
-              },
-              images: {
-                type: 'string',
-                description: 'Image URL',
-              },
-            },
-            required: [
-              'title',
-              'ingredients',
-              'instructions',
-              'servingFor',
-              'prepTimeInSeconds',
-              'cookTimeInSeconds',
-              'nutritionInformation',
-              'images',
-            ],
-          },
-          examples: [
-            {
-              query: 'pomegranate',
-              title: 'Pomegranate Chicken Salad',
-              ingredients: [
-                {
-                  name: 'chicken',
-                  quantity: '1',
-                },
-                {
-                  name: 'pomegranate',
-                  quantity: '1',
-                },
-                {
-                  name: 'salt',
-                  quantity: '1',
-                },
-              ],
-              instructions: [
-                'Cut the chicken into pieces',
-                'Put the chicken in a pot',
-                'Add the pomegranate and salt',
-                'Cook for 30 minutes',
-              ],
-              categories: ['salad', 'vegetarian'],
-              servingFor: '4',
-              prepTimeInSeconds: '10',
-              cookTimeInSeconds: '30',
-              totalTimeInSeconds: '40',
-              nutritionInformation: 'Calories: 100',
-              images: ['https://example.com/image1.jpg'],
-            },
-          ],
-        },
-      ],
+      functions: [myRecipePrompt],
     }),
   };
   try {
@@ -154,11 +41,9 @@ const fetchApiRecipe = async (req, res) => {
     );
     const { choices } = await response.json();
     const data = JSON.parse(choices[0].message.function_call.arguments);
-    console.log(data);
-    // Generate the image generation prompt with the recipe data
-    const imageGenerationPrompt = `Generate an image of the recipe for ${data.title}.
-`;
 
+    // Call the generateImagePrompt for data
+    const imageGenerationPrompt = generateImagePrompt(data);
     // Use Bing Image Search API to search for images related to the recipe
     const bingImageOptions = {
       method: 'GET',
@@ -186,8 +71,9 @@ const fetchApiRecipe = async (req, res) => {
         : '';
     const responseData = {
       ...data,
-      imageUrl,
+      image: imageUrl,
     };
+    console.log(responseData);
     res.status(StatusCodes.OK).send(responseData);
   } catch (err) {
     res
