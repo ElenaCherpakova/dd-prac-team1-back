@@ -24,7 +24,7 @@ const fetchApiRecipe = async (req, res) => {
         { role: 'system', content: assistant },
         {
           role: 'user',
-          content: `User receives a recipe based on following ingredient: ${query} and with special preferences: ${optValue}`,
+          content: `User receives a recipe based on following ingredient: ${query}.Preferences or Dietaries:${optValue}`,
         },
       ],
       temperature: 0.3,
