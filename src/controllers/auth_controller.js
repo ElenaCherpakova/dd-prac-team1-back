@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, UnauthenticatedError } = require('../errors');
+const jwt = require('jsonwebtoken');
 
 const register = async (req, res) => {
   const { username, email, password } = req.body;
@@ -34,10 +35,20 @@ const login = async (req, res) => {
   }
 
   const token = user.createJWT();
-  res.status(StatusCodes.OK).json({ user: { email: user.email }, token });
+  res.status(StatusCodes.OK).json({ user: { username: user.username, email: user.email }, token });
+};
+
+const logout = (req, res) => {
+  req.session.destroy(function (err) {
+    if (err) {
+      throw new UnauthenticatedError('Logout failed');
+    }
+    res.status(StatusCodes.OK).json({ message: 'Logged out successfully' });
+  });
 };
 
 module.exports = {
   register,
   login,
+  logout,
 };
