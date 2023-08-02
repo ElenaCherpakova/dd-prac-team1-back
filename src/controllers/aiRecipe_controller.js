@@ -6,7 +6,8 @@ const generateImagePrompt = require('../prompts/generateImagePrompt');
 
 const fetchApiRecipe = async (req, res) => {
   const { query, optionValues } = req.body;
-  const optValue = optionValues.join(',');
+  const optValue = optionValues.join(', ');
+  console.log(optValue)
 
   if (!query || query.trim() === '') {
     throw new BadRequestError('Please provide a query.');
