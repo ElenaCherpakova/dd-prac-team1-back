@@ -1,15 +1,15 @@
 const mongoose = require('mongoose');
 
-const ingredientSchema = new mongoose.Schema({
-  name: {
+const recipeIngredientSchema = new mongoose.Schema({
+  ingredientName: {
     type: String,
     required: true,
   },
-  amount: {
+  ingredientAmount: {
     type: Number,
     required: true,
   },
-  unit: {
+  ingredientUnit: {
     type: String,
     enum: ['kg', 'g', 'lbs', 'cups', 'tbs', 'tbsp', 'OtherUnit'],
     //required: true,
@@ -17,7 +17,7 @@ const ingredientSchema = new mongoose.Schema({
 });
 
 const tagSchema = new mongoose.Schema({
-  name: {
+  tagName: {
     type: String,
     required: true,
     trim: true,
@@ -27,13 +27,13 @@ const tagSchema = new mongoose.Schema({
 
 const RecipeSchema = new mongoose.Schema(
   {
-    name: {
+    recipeName: {
       type: String,
       required: [true, 'Please provide the recipe name'],
       maxlength: 50,
     },
-    ingredients: [ingredientSchema],
-    servings: {
+    recipeIngredients: [recipeIngredientSchema],
+    recipeServings: {
       type: Number,
       default: 1,
       //required: [true, 'Please provide the serving size'],
@@ -42,13 +42,13 @@ const RecipeSchema = new mongoose.Schema(
         message: 'Servings must be an integer.',
       },
     },
-    complexityLevel: {
+    recipeComplexityLevel: {
       type: String,
       enum: ['easy', 'medium', 'difficult'],
       default: 'medium',
     },
-    tags: [tagSchema],
-    category: {
+    recipeTags: [tagSchema],
+    recipeCategory: {
       type: String,
       required: [true, 'Please provide the category'],
       enum: [
@@ -70,7 +70,7 @@ const RecipeSchema = new mongoose.Schema(
         'CustomCategory',
       ],
     },
-    specialDiets: [
+    recipeSpecialDiets: [
       {
         type: String,
         enum: [
@@ -87,58 +87,46 @@ const RecipeSchema = new mongoose.Schema(
         ],
       },
     ],
-    instructions: {
+    recipeInstructions: {
       type: String,
       required: [true, 'Please provide the cooking instructions'],
     },
-    prepTime: {
-      hours: {
-        type: Number,
-        default: 0,
-      },
-      minutes: {
+    recipePrepTime: {
+      recipePrepTimeMinutes: {
         type: Number,
         default: 0,
       },
     },
-    cookTime: {
-      hours: {
-        type: Number,
-        default: 0,
-      },
-      minutes: {
+    recipeCookTime: {
+      recipeCookTimeMinutes: {
         type: Number,
         default: 0,
       },
     },
-    totalTime: {
-      hours: {
-        type: Number,
-        default: 0,
-      },
-      minutes: {
+    recipeTotalTime: {
+      recipeTotalTimeMinutes: {
         type: Number,
         default: 0,
       },
     },
-    nutritionInfo: {
-      calories: {
+    recipeNutritionInfo: {
+      NutritionInfoCalories: {
         type: Number,
       },
-      protein: {
+      NutritionInfoProtein: {
         type: Number,
       },
-      carbs: {
+      NutritionInfoCarbs: {
         type: Number,
       },
-      fat: {
+      NutritionInfoFat: {
         type: Number,
       },
     },
-    image: {
+    recipeImage: {
       type: String,
     },
-    createdBy: [
+    recipeCreatedBy: [
       { 
         type: mongoose.Types.ObjectId,
         ref: 'User',
