@@ -5,7 +5,8 @@ const myRecipePrompt = require('../prompts/recipePrompt');
 const generateImagePrompt = require('../prompts/generateImagePrompt');
 
 const fetchApiRecipe = async (req, res) => {
-  const { query } = req.body;
+  const { query, optionValues } = req.body;
+  const optValue = optionValues.join(',');
 
   if (!query || query.trim() === '') {
     throw new BadRequestError('Please provide a query.');
@@ -23,7 +24,7 @@ const fetchApiRecipe = async (req, res) => {
         { role: 'system', content: assistant },
         {
           role: 'user',
-          content: `User receives a recipe based on following ingredient: ${query}`,
+          content: `User receives a recipe based on following ingredient: ${query} and with special preferences: ${optValue}`,
         },
       ],
       temperature: 0.3,
