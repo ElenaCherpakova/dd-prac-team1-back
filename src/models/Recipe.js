@@ -129,6 +129,7 @@ const RecipeSchema = new mongoose.Schema(
     recipeCreatedBy: {
       type: mongoose.Types.ObjectId,
       ref: 'User',
+      required: true,
     },
   },
   { timestamps: true }
