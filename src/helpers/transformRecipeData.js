@@ -22,10 +22,30 @@ const transformRecipeData = (openAIOutput) => {
     specialDiets,
   } = openAIOutput;
 
+  const convertFractionToDecimal = (fraction) => {
+    const [numerator, denominator] = fraction.split('/');
+    const parsedNumerator = parseFloat(numerator);
+    const parsedDenominator = parseFloat(denominator);
+    if (parsedDenominator === 0) {
+      return NaN;
+    }
+    return parsedNumerator / parsedDenominator;
+  };
+  const convertIngredientAmountIntoInteger = (value) => {
+    if (value === 'to taste') {
+      return -1;
+    }
+    if (/^\d+(\.\d+)?\/\d+(\.\d+)?$/.test(value)) {
+      // Check if the value is a fraction
+      return convertFractionToDecimal(value);
+    }
+    return parseFloat(value);
+  };
+
   const recipeIngredients = ingredients.map((ingredient) => {
     return {
       ingredientName: ingredient.name,
-      ingredientAmount: parseFloat(ingredient.quantity),
+      ingredientAmount: convertIngredientAmountIntoInteger(ingredient.quantity),
       ingredientUnit: isValidIngredientUnitEnum(ingredient.unit)
         ? ingredient.unit
         : 'other',

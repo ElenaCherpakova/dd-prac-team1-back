@@ -4,13 +4,11 @@ const { StatusCodes } = require('http-status-codes');
 const transformRecipeData = require('../helpers/transformRecipeData');
 
 const addApiRecipe = asyncWrapper(async (req, res) => {
-  const userId = req.user.userId;
-
   const recipeData = transformRecipeData(req.body);
-  recipeData.recipeCreatedBy = userId;
+  recipeData.recipeCreatedBy = req.user.userId;
   console.log(recipeData);
   const newRecipe = await RecipeSchema.create(recipeData);
-  res.status(StatusCodes.CREATED).json({ data: newRecipe, success: true });
+  res.status(StatusCodes.CREATED).json({ data: newRecipe, msg: 'recipe created successfully' });
 });
 
 module.exports = { addApiRecipe };
