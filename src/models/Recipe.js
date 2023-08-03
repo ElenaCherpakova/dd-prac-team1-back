@@ -11,7 +11,7 @@ const recipeIngredientSchema = new mongoose.Schema({
   },
   ingredientUnit: {
     type: String,
-    enum: ['kg', 'g', 'lbs', 'cups', 'tbs', 'tbsp', 'OtherUnit'],
+    enum: ['kg', 'g', 'lbs', 'cup', 'tsp', 'tbsp', 'other'],
     //required: true,
   },
 });
@@ -52,20 +52,20 @@ const RecipeSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide the category'],
       enum: [
-        'Main Dishes',
-        'Snacks',
+        'Main Dish',
+        'Snack',
         'Soups',
-        'Cream Soups',
-        'Cocktails',
-        'Salads',
-        'Desserts',
+        'Cream Soup',
+        'Cocktail',
+        'Salad',
+        'Dessert',
         'Kids Menu',
-        'Breakfasts',
-        'Appetizers',
-        'Side Dishes',
-        'Sandwiches',
+        'Breakfast',
+        'Appetizer',
+        'Side Dish',
+        'Sandwich',
         'Picnic Ideas',
-        'Smoothies',
+        'Smoothy',
         'Party Menu',
         'CustomCategory',
       ],
@@ -126,12 +126,10 @@ const RecipeSchema = new mongoose.Schema(
     recipeImage: {
       type: String,
     },
-    recipeCreatedBy: [
-      { 
-        type: mongoose.Types.ObjectId,
-        ref: 'User',
-      },
-    ],
+    recipeCreatedBy: {
+      type: mongoose.Types.ObjectId,
+      ref: 'User',
+    },
   },
   { timestamps: true }
 );

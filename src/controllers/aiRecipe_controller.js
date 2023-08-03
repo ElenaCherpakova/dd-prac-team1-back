@@ -2,12 +2,12 @@
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError } = require('../errors');
 const myRecipePrompt = require('../prompts/recipePrompt');
-const generateImagePrompt = require('../prompts/generateImagePrompt');
+// const generateImagePrompt = require('../prompts/generateImagePrompt');
 
 const fetchApiRecipe = async (req, res) => {
   const { query, optionValues } = req.body;
-  const optValue = optionValues.join(', ');
-  console.log(optValue)
+  const optValue = optionValues.length > 0 ? optionValues.join(', ') : '';
+  console.log(optValue);
 
   if (!query || query.trim() === '') {
     throw new BadRequestError('Please provide a query.');
@@ -25,7 +25,7 @@ const fetchApiRecipe = async (req, res) => {
         { role: 'system', content: assistant },
         {
           role: 'user',
-          content: `User receives a recipe based on following ingredient: ${query}.Preferences or Dietaries:${optValue}`,
+          content: `User receives a recipe based on following ingredient: ${query}. Preferences or Dietaries: ${optValue}`,
         },
       ],
       temperature: 0.3,
@@ -45,38 +45,38 @@ const fetchApiRecipe = async (req, res) => {
     const data = JSON.parse(choices[0].message.function_call.arguments);
 
     // Call the generateImagePrompt for data
-    const imageGenerationPrompt = generateImagePrompt(data);
-    // Use Bing Image Search API to search for images related to the recipe
-    const bingImageOptions = {
-      method: 'GET',
-      headers: {
-        'Ocp-Apim-Subscription-Key': process.env.BING_IMAGE_SEARCH_API_KEY,
-      },
-    };
-    // Define the desired height (in pixels)
-    // const desiredHeight = 150;
-    const sizeFilter = 'medium';
+    // const imageGenerationPrompt = generateImagePrompt(data);
+    // // Use Bing Image Search API to search for images related to the recipe
+    // const bingImageOptions = {
+    //   method: 'GET',
+    //   headers: {
+    //     'Ocp-Apim-Subscription-Key': process.env.BING_IMAGE_SEARCH_API_KEY,
+    //   },
+    // };
+    // // Define the desired height (in pixels)
+    // // const desiredHeight = 150;
+    // const sizeFilter = 'medium';
 
-    const endPointToGenerateImg = `https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURIComponent(
-      imageGenerationPrompt
-    )}&size=${sizeFilter}`;
+    // const endPointToGenerateImg = `https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURIComponent(
+    //   imageGenerationPrompt
+    // )}&size=${sizeFilter}`;
 
-    const bingImageResponse = await fetch(
-      endPointToGenerateImg,
-      bingImageOptions
-    );
+    // const bingImageResponse = await fetch(
+    //   endPointToGenerateImg,
+    //   bingImageOptions
+    // );
 
-    const bingImageData = await bingImageResponse.json();
-    const imageUrl =
-      bingImageData.value && bingImageData.value.length > 0
-        ? bingImageData.value[0].contentUrl
-        : '';
-    const responseData = {
-      ...data,
-      image: imageUrl,
-    };
-    console.log(responseData);
-    res.status(StatusCodes.OK).send(responseData);
+    // const bingImageData = await bingImageResponse.json();
+    // const imageUrl =
+    //   bingImageData.value && bingImageData.value.length > 0
+    //     ? bingImageData.value[0].contentUrl
+    //     : '';
+    // const responseData = {
+    //   ...data,
+    //   image: imageUrl,
+    // };
+    // console.log(responseData);
+    res.status(StatusCodes.OK).send(data);
   } catch (err) {
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
