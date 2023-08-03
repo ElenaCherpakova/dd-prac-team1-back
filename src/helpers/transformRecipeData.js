@@ -24,8 +24,8 @@ const transformRecipeData = (openAIOutput) => {
 
   const convertFractionToDecimal = (fraction) => {
     const [numerator, denominator] = fraction.split('/');
-    const parsedNumerator = parseFloat(numerator);
-    const parsedDenominator = parseFloat(denominator);
+    const parsedNumerator = Number(numerator);
+    const parsedDenominator = Number(denominator);
     if (parsedDenominator === 0) {
       return NaN;
     }
@@ -35,11 +35,11 @@ const transformRecipeData = (openAIOutput) => {
     if (value === 'to taste') {
       return -1;
     }
+    // Check if the value is a fraction
     if (/^\d+(\.\d+)?\/\d+(\.\d+)?$/.test(value)) {
-      // Check if the value is a fraction
       return convertFractionToDecimal(value);
     }
-    return parseFloat(value);
+    return Number(value);
   };
 
   const recipeIngredients = ingredients.map((ingredient) => {
@@ -57,21 +57,21 @@ const transformRecipeData = (openAIOutput) => {
     recipeIngredients: recipeIngredients,
     recipeInstructions: instructions.join('\n'),
     recipeCategory: categories,
-    recipeServings: parseFloat(servingFor),
+    recipeServings: Number(servingFor),
     recipePrepTime: {
-      recipePrepTimeMinutes: parseFloat(prepTimeInMinutes),
+      recipePrepTimeMinutes: Number(prepTimeInMinutes),
     },
     recipeCookTime: {
-      recipeCookTimeMinutes: parseFloat(cookTimeInMinutes),
+      recipeCookTimeMinutes: Number(cookTimeInMinutes),
     },
     recipeTotalTime: {
-      recipeTotalTimeMinutes: parseFloat(totalTimeInMinutes),
+      recipeTotalTimeMinutes: Number(totalTimeInMinutes),
     },
     recipeNutritionInfo: {
-      NutritionInfoCalories: parseFloat(nutritionInformation.calories),
-      NutritionInfoProtein: parseFloat(nutritionInformation.protein),
-      NutritionInfoCarbs: parseFloat(nutritionInformation.carbs),
-      NutritionInfoFat: parseFloat(nutritionInformation.fat),
+      NutritionInfoCalories: Number(nutritionInformation.calories),
+      NutritionInfoProtein: Number(nutritionInformation.protein),
+      NutritionInfoCarbs: Number(nutritionInformation.carbs),
+      NutritionInfoFat: Number(nutritionInformation.fat),
     },
     recipeImage: image,
     recipeComplexityLevel: recipeComplexityLevel,
