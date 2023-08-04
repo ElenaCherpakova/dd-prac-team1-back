@@ -7,7 +7,7 @@ const transformRecipeData = require('../helpers/transformRecipeData');
 const myRecipePrompt = require('../prompts/recipePrompt');
 const generateImagePrompt = require('../prompts/generateImagePrompt');
 
-const fetchApiRecipe = async (req, res) => {
+const fetchAiRecipe = async (req, res) => {
   const { query, optionValues } = req.body;
   const optValue = optionValues.join(', ');
 
@@ -86,7 +86,7 @@ const fetchApiRecipe = async (req, res) => {
   }
 };
 
-const createApiRecipe = asyncWrapper(async (req, res) => {
+const createAiRecipe = asyncWrapper(async (req, res) => {
   const recipeData = transformRecipeData(req.body);
   recipeData.recipeCreatedBy = req.user.userId;
   console.log(recipeData);
@@ -97,6 +97,6 @@ const createApiRecipe = asyncWrapper(async (req, res) => {
 });
 
 module.exports = {
-  fetchApiRecipe,
-  createApiRecipe,
+  fetchAiRecipe,
+  createAiRecipe,
 };

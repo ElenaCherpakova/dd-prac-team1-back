@@ -54,7 +54,7 @@ const RecipeSchema = new mongoose.Schema(
       enum: [
         'Main Dish',
         'Snack',
-        'Soups',
+        'Soup',
         'Cream Soup',
         'Cocktail',
         'Salad',
