@@ -7,7 +7,7 @@ const app = express();
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const session_params = require('./sessionConfig');
-
+const xssClean = require('./middleware/xssClean');
 /*security packages*/
 const cors = require('cors');
 const favicon = require('express-favicon');
@@ -19,7 +19,7 @@ const helmet = require('helmet');
 /*routes*/
 const mainRouter = require('./routes/mainRouter.js');
 const authRouter = require('./routes/auth_routes.js');
-const aiRecipeRouter = require('./routes/apiRecipe_routes');
+const aiRecipeRouter = require('./routes/aiRecipe_routes');
 const authMiddleware = require('./middleware/authentication');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
@@ -37,6 +37,7 @@ app.use(cors());
 app.use(mongoSanitize());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(xssClean);
 app.use(cookieParser());
 if (process.env.NODE_ENV === 'development') {
   app.use(logger('dev'));
