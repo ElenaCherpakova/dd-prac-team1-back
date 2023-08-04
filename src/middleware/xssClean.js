@@ -11,7 +11,7 @@ function sanitize(obj) {
 }
 
 const xssClean = (req, res, next) => {
-  ['body', 'headers', 'params', 'query'].forEach((property) => {
+  ['body', 'params', 'query'].forEach((property) => {
     if (req[property]) {
       sanitize(req[property]);
     }
