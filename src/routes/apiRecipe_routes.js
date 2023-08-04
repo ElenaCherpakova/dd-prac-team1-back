@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
-const { fetchApiRecipe } = require('../controllers/aiRecipe_controller');
-const { addApiRecipe } = require('../controllers/addApiRecipe_controller');
+const {
+  fetchApiRecipe,
+  createApiRecipe,
+} = require('../controllers/aiRecipe_controller');
+// const { addApiRecipe } = require('../controllers/addApiRecipe_controller');
 
-router.post('/', fetchApiRecipe).post('/add', addApiRecipe);
+router.post('/', fetchApiRecipe).post('/add', createApiRecipe);
 
 module.exports = router;

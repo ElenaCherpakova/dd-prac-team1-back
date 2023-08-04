@@ -1,6 +1,9 @@
 /* OpenAI API */
+const RecipeSchema = require('../models/Recipe');
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError } = require('../errors');
+const asyncWrapper = require('../middleware/async');
+const transformRecipeData = require('../helpers/transformRecipeData');
 const myRecipePrompt = require('../prompts/recipePrompt');
 const generateImagePrompt = require('../prompts/generateImagePrompt');
 
@@ -83,6 +86,17 @@ const fetchApiRecipe = async (req, res) => {
   }
 };
 
+const createApiRecipe = asyncWrapper(async (req, res) => {
+  const recipeData = transformRecipeData(req.body);
+  recipeData.recipeCreatedBy = req.user.userId;
+  console.log(recipeData);
+  const newRecipe = await RecipeSchema.create(recipeData);
+  res
+    .status(StatusCodes.CREATED)
+    .json({ data: newRecipe, msg: 'recipe created successfully' });
+});
+
 module.exports = {
   fetchApiRecipe,
+  createApiRecipe,
 };
