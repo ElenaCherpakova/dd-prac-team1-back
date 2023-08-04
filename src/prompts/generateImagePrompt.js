@@ -1,7 +1,11 @@
 const generateImagePrompt = (data) => {
-  const imageGenerationPrompt = `Create a visually compelling, professionally crafted photo that exudes sophistication for the following recipe: ${data.recipeName}. The recipe uses the following ingredients: ${data.ingredients
+  const imageGenerationPrompt = `Create a visually compelling, professionally crafted photo that exudes sophistication for the following recipe: ${
+    data.recipeName
+  }. The recipe uses the following ingredients: ${data.ingredients
     .map((ingredient) => `${ingredient.name})`)
-    .join(', ')}. Also each generated image should be unique and not a repetition of previously generated images. The image should adhere to these guidelines:
+    .join(
+      ', '
+    )}. Also each generated image should be unique and not a repetition of previously generated images. The image should adhere to these guidelines:
     1. Uniqueness: Each image created should be distinctly different from the others. Avoid replicating the same layouts, angles, or compositions.
     2. Dish Focus: The image should focus solely on the dish itself. Avoid including utensils, dishware, or other kitchen items unless they are part of the dish presentation.
     3. Color Palette: Utilize a light green color palette in the image. This can be achieved through the dish itself, garnishes, or other elements in the photo.
@@ -11,6 +15,5 @@ const generateImagePrompt = (data) => {
   The ultimate aim is to produce a high-quality, professional image that showcases the recipe in a gourmet cooking magazine style, with a pleasing light green aesthetic and a unique perspective each time.`;
   return imageGenerationPrompt;
 };
-
 
 module.exports = generateImagePrompt;
