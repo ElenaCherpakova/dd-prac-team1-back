@@ -1,5 +1,5 @@
 /* OpenAI API */
-const RecipeSchema = require('../models/Recipe');
+const Recipe = require('../models/Recipe');
 const { StatusCodes } = require('http-status-codes');
 const { BadRequestError } = require('../errors');
 const asyncWrapper = require('../middleware/async');
@@ -9,7 +9,7 @@ const generateImagePrompt = require('../prompts/generateImagePrompt');
 
 const fetchAiRecipe = async (req, res) => {
   const { query, optionValues } = req.body;
-  const optValue = optionValues.join(', ');
+  const optValue = optionValues.length > 0 ? optionValues.join(', ') : '';
 
   if (!query || query.trim() === '') {
     throw new BadRequestError('Please provide a query.');
@@ -90,13 +90,22 @@ const createAiRecipe = asyncWrapper(async (req, res) => {
   const recipeData = transformRecipeData(req.body);
   recipeData.recipeCreatedBy = req.user.userId;
   console.log(recipeData);
-  const newRecipe = await RecipeSchema.create(recipeData);
+  const newRecipe = await Recipe.create(recipeData);
   res
     .status(StatusCodes.CREATED)
     .json({ data: newRecipe, msg: 'recipe created successfully' });
 });
 
+const getAllAiRecipe = asyncWrapper(async (req, res) => {
+  const { userId } = req.user;
+  const recipe = await Recipe.find({ recipeCreatedBy: userId }).sort(
+    'createdAt'
+  );
+  res.status(StatusCodes.OK).json({ recipe, totalRecipes: recipe.length });
+});
+
 module.exports = {
   fetchAiRecipe,
   createAiRecipe,
+  getAllAiRecipe,
 };
