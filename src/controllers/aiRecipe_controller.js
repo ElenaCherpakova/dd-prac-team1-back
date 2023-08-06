@@ -104,8 +104,58 @@ const getAllAiRecipe = asyncWrapper(async (req, res) => {
   res.status(StatusCodes.OK).json({ recipe, totalRecipes: recipe.length });
 });
 
+const getAiRecipe = asyncWrapper(async (req, res) => {
+  const recipeId = req.params.recipeId;
+  const { userId } = req.user;
+
+  try {
+    const recipe = await Recipe.findOne({
+      _id: recipeId,
+      recipeCreatedBy: userId,
+    });
+
+    if (!recipe) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: 'Recipe not found' });
+    }
+
+    res.status(StatusCodes.OK).json(recipe);
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: 'Error retrieving recipe' });
+  }
+});
+
+const deleteAiRecipe = asyncWrapper(async (req, res) => {
+  const recipeId = req.params.recipeId;
+  const { userId } = req.user;
+
+  try {
+    const deletedRecipe = await Recipe.findOneAndDelete({
+      _id: recipeId,
+      recipeCreatedBy: userId,
+    });
+
+    if (!deletedRecipe) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: 'Recipe not found' });
+    }
+
+    res.status(StatusCodes.OK).json({ message: 'Recipe deleted successfully' });
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: 'Error deleting recipe' });
+  }
+});
+
 module.exports = {
   fetchAiRecipe,
   createAiRecipe,
   getAllAiRecipe,
+  getAiRecipe,
+  deleteAiRecipe,
 };
