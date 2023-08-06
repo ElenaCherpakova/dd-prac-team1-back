@@ -45,7 +45,7 @@ const transformRecipeData = (openAIOutput) => {
   const recipeIngredients = ingredients.map((ingredient) => {
     return {
       ingredientName: ingredient.name,
-      ingredientAmount: convertIngredientAmountIntoInteger(ingredient.quantity.split(' ')[0]),
+      ingredientAmount: convertIngredientAmountIntoInteger(ingredient.quantity),
       ingredientUnit: isValidIngredientUnitEnum(ingredient.unit)
         ? ingredient.unit
         : 'other',
@@ -57,21 +57,21 @@ const transformRecipeData = (openAIOutput) => {
     recipeIngredients: recipeIngredients,
     recipeInstructions: instructions.join('\n'),
     recipeCategory: categories,
-    recipeServings: Number(servingFor),
+    recipeServings: servingFor,
     recipePrepTime: {
-      recipePrepTimeMinutes: Number(prepTimeInMinutes),
+      recipePrepTimeMinutes: prepTimeInMinutes,
     },
     recipeCookTime: {
-      recipeCookTimeMinutes: Number(cookTimeInMinutes),
+      recipeCookTimeMinutes: cookTimeInMinutes,
     },
     recipeTotalTime: {
-      recipeTotalTimeMinutes: Number(totalTimeInMinutes),
+      recipeTotalTimeMinutes: totalTimeInMinutes,
     },
     recipeNutritionInfo: {
-      NutritionInfoCalories: Number(nutritionInformation.calories),
-      NutritionInfoProtein: Number(nutritionInformation.protein),
-      NutritionInfoCarbs: Number(nutritionInformation.carbs),
-      NutritionInfoFat: Number(nutritionInformation.fat),
+      NutritionInfoCalories: nutritionInformation.calories,
+      NutritionInfoProtein: nutritionInformation.protein,
+      NutritionInfoCarbs: nutritionInformation.carbs,
+      NutritionInfoFat: nutritionInformation.fat,
     },
     recipeImage: image,
     recipeComplexityLevel: recipeComplexityLevel,
