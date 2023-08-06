@@ -24,6 +24,10 @@ const errorHandlerMiddleware = (err, req, res, next) => {
     customError.msg = `No item found with id : ${err.value}`;
     customError.statusCode = 404;
   }
+  if (err.name === 'TokenExpiredError') {
+    customError.msg = err.userMessage || 'Session expired, please login again';
+    customError.statusCode = 401;
+  }
   return res.status(customError.statusCode).json({ msg: customError.msg });
 };
 

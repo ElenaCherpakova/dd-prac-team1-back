@@ -16,7 +16,12 @@ const authenticationMiddleware = async (req, res, next) => {
     req.user = { userId, username };
     next();
   } catch (err) {
-    throw new UnauthenticatedError('Authentication invalid');
+    if (err.name === 'TokenExpiredError') {
+      err.userMessage = 'Session expired, please login again.';
+      throw err;
+    } else {
+      throw new UnauthenticatedError('Authentication invalid');
+    }
   }
 };
 
