@@ -93,7 +93,7 @@ const createAiRecipe = asyncWrapper(async (req, res) => {
   const newRecipe = await Recipe.create(recipeData);
   res
     .status(StatusCodes.CREATED)
-    .json({ data: newRecipe, msg: 'recipe created successfully' });
+    .json({ data: newRecipe, message: 'Recipe created successfully' });
 });
 
 const getAllAiRecipe = asyncWrapper(async (req, res) => {
