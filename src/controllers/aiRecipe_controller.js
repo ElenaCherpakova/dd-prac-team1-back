@@ -128,6 +128,35 @@ const getAiRecipe = asyncWrapper(async (req, res) => {
   }
 });
 
+const updateAiRecipe = asyncWrapper(async (req, res) => {
+  const recipeId = req.params.recipeId;
+  const { userId } = req.user;
+  const updatedData = req.body;
+
+  try {
+    const updatedRecipe = await Recipe.findOneAndUpdate(
+      {
+        _id: recipeId,
+        recipeCreatedBy: userId,
+      },
+      updatedData,
+      { new: true } // Return the updated recipe
+    );
+
+    if (!updatedRecipe) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: 'Recipe not found or not authorized to update' });
+    }
+
+    res.status(StatusCodes.OK).json(updatedRecipe);
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: 'Error updating recipe' });
+  }
+});
+
 const deleteAiRecipe = asyncWrapper(async (req, res) => {
   const recipeId = req.params.recipeId;
   const { userId } = req.user;
@@ -157,5 +186,6 @@ module.exports = {
   createAiRecipe,
   getAllAiRecipe,
   getAiRecipe,
+  updateAiRecipe,
   deleteAiRecipe,
 };
