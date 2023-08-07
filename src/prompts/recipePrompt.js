@@ -152,6 +152,7 @@ const myRecipePrompt = {
                 'Lactose Free',
                 'Dairy Free',
                 'Soy Free',
+                'None'
               ],
             },
           ],

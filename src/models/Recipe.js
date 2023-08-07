@@ -101,6 +101,7 @@ const RecipeSchema = new mongoose.Schema(
           'Lactose Free',
           'Dairy Free',
           'Soy Free',
+          'None'
         ],
       },
     ],
