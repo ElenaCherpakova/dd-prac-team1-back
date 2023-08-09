@@ -35,7 +35,8 @@ const tagSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    set: (value) => value.replace(/[^\w\s]/g, '-'),
+    set: (value) =>
+      value.match(/(\p{L})|((?<=\p{L})(-| )(?=\p{L}))/gu).join(''),
   },
 });
 
@@ -101,7 +102,7 @@ const RecipeSchema = new mongoose.Schema(
           'Lactose Free',
           'Dairy Free',
           'Soy Free',
-          'None'
+          'None',
         ],
       },
     ],
