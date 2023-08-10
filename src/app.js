@@ -20,6 +20,7 @@ const helmet = require('helmet');
 const mainRouter = require('./routes/mainRouter.js');
 const authRouter = require('./routes/auth_routes.js');
 const aiRecipeRouter = require('./routes/aiRecipe_routes');
+const manualRecipeRouter = require('./routes/manualRecipe_routes');
 const authMiddleware = require('./middleware/authentication');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
@@ -65,6 +66,7 @@ app.get('/api/v1/test', (req, res) => {
 app.use('/api/v1', mainRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/ai-recipe', authMiddleware, aiRecipeRouter);
+app.use('/api/v1/manual-recipe', authMiddleware, manualRecipeRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
