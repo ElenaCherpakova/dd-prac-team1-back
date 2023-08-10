@@ -47,3 +47,22 @@ The schema also includes methods for password hashing, JWT token creation, and p
 3. The recipe schema defines the structure of recipe data stored in the MongoDB database. 
 It stores recipe information, including recipe name, ingredients, serving size, cooking instructions, nutrition info, meal preparation time, recipe category, special diet type, recipe tags, complexity level and meal image. 
 It uses subdocuments for recipe ingredients and tags.
+
+# MANUAL RECIPE ENTRY FUNCTIONALITY
+
+The manual recipe entry functionality allows users to create, retrieve/read, update, and delete recipes manually within the app.
+
+Endpoints: 
+
+1. Endpoints:
+Create Manual Recipe: POST /api/v1/manual-recipe
+Get All Recipes: GET /api/v1/manual-recipe
+Get Manual Recipe by ID: GET /api/v1/manual-recipe/:recipeId
+Update Manual Recipe: PATCH /api/v1/manual-recipe/:recipeId
+Delete Manual Recipe: DELETE /api/v1/manual-recipe/:recipeId
+
+2. Authentication:
+Users must be authenticated to use these endpoints. Authentication tokens can be obtained by logging in. Users can only create, retrieve, update, and delete recipes that they have created.
+
+3. Error Handling
+The API follows RESTful conventions for error handling. When errors occur, appropriate HTTP status codes are returned along with error messages in the response body.
