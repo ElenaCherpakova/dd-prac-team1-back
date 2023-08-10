@@ -51,7 +51,9 @@ const transformRecipeData = (openAIOutput) => {
   const recipeIngredients = ingredients.map((ingredient) => {
     return {
       ingredientName: ingredient.name,
-      ingredientAmount: convertIngredientAmountIntoInteger(ingredient.quantity),
+      ingredientAmount: convertIngredientAmountIntoInteger(
+        ingredient.quantity.split(' ')[0]
+      ),
       ingredientUnit: isValidIngredientUnitEnum(ingredient.unit)
         ? ingredient.unit
         : 'other',
