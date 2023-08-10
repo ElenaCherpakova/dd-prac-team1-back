@@ -31,9 +31,15 @@ const transformRecipeData = (openAIOutput) => {
     }
     return parsedNumerator / parsedDenominator;
   };
+
+  const wordQty = {
+    'to taste': -1,
+    'for serving': -2,
+    'for garnish': -3,
+  };
   const convertIngredientAmountIntoInteger = (value) => {
-    if (value === 'to taste') {
-      return -1;
+    if (wordQty[value] !== undefined) {
+      return wordQty[value];
     }
     // Check if the value is a fraction
     if (/^\d+(\.\d+)?\/\d+(\.\d+)?$/.test(value)) {
