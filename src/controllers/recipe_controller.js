@@ -86,6 +86,7 @@ const fetchAiRecipe = async (req, res) => {
   }
 };
 
+// Create a new AI recipe
 const createAiRecipe = asyncWrapper(async (req, res) => {
   const recipeData = transformRecipeData(req.body);
   recipeData.recipeCreatedBy = req.user.userId;
@@ -96,96 +97,119 @@ const createAiRecipe = asyncWrapper(async (req, res) => {
     .json({ data: newRecipe, message: 'Recipe created successfully' });
 });
 
-const getAllAiRecipe = asyncWrapper(async (req, res) => {
-  const { userId } = req.user;
-  const recipe = await Recipe.find({ recipeCreatedBy: userId }).sort(
-    'createdAt'
-  );
-  res.status(StatusCodes.OK).json({ recipe, totalRecipes: recipe.length });
+// Create a new manual recipe
+const createManualRecipe = asyncWrapper(async (req, res) => {
+  // Set the recipe's creator to the authenticated user's ID
+  req.body.recipeCreatedBy = req.user.userId;
+  // Create a new recipe using the data from the request body
+  const recipe = await Recipe.create(req.body);
+  res.status(StatusCodes.CREATED).json({ recipe });
 });
 
-const getAiRecipe = asyncWrapper(async (req, res) => {
-  const recipeId = req.params.recipeId;
-  const { userId } = req.user;
-
-  try {
-    const recipe = await Recipe.findOne({
-      _id: recipeId,
-      recipeCreatedBy: userId,
-    });
-
-    if (!recipe) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: 'Recipe not found' });
-    }
-
-    res.status(StatusCodes.OK).json(recipe);
-  } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: 'Error retrieving recipe' });
-  }
+// Get all recipes created by the authenticated user and sort them by creation date
+const getAllRecipes = asyncWrapper(async (req, res) => {
+  const recipes = await Recipe.find({ recipeCreatedBy: req.user.userId }).sort('createdAt');
+  res.status(StatusCodes.OK).json({ recipes, count: recipes.length });
 });
 
-const updateAiRecipe = asyncWrapper(async (req, res) => {
-  const recipeId = req.params.recipeId;
-  const { userId } = req.user;
-  const updatedData = req.body;
+// Get a specific saved recipe by its ID
+const getRecipe = asyncWrapper(async (req, res) => {
+  const {
+      user: { userId },
+      params: { recipeId },
+  } = req;
 
+  // Find a recipe with the recipe ID created by the auth user
   try {
-    const updatedRecipe = await Recipe.findOneAndUpdate(
-      {
+      const recipe = await Recipe.findOne({
         _id: recipeId,
         recipeCreatedBy: userId,
-      },
-      updatedData,
-      { new: true } // Return the updated recipe
-    );
-
-    if (!updatedRecipe) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: 'Recipe not found or not authorized to update' });
+      });
+  
+      if (!recipe) {
+        return res
+          .status(StatusCodes.NOT_FOUND)
+          .json({ message: 'Recipe not found' });
+      }
+  
+      res.status(StatusCodes.OK).json(recipe);
+    } catch (error) {
+      console.error(error); // Log the error for debugging purposes
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: 'Error retrieving recipe', error: error.message });
     }
+  });
 
-    res.status(StatusCodes.OK).json(updatedRecipe);
-  } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: 'Error updating recipe' });
-  }
-});
+// Update a saved recipe
+const updateRecipe = asyncWrapper(async (req, res) => {
+  const {
+      body,
+      user: { userId },
+      params: { recipeId },
+  } = req;
 
-const deleteAiRecipe = asyncWrapper(async (req, res) => {
-  const recipeId = req.params.recipeId;
-  const { userId } = req.user;
-
+  // Find and update the recipe with the recipe ID created by the user
   try {
-    const deletedRecipe = await Recipe.findOneAndDelete({
-      _id: recipeId,
-      recipeCreatedBy: userId,
-    });
-
-    if (!deletedRecipe) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: 'Recipe not found' });
+      const updatedRecipe = await Recipe.findOneAndUpdate(
+        {
+          _id: recipeId,
+          recipeCreatedBy: userId,
+        },
+        body,
+        { new: true, runValidators: true } // Return the updated recipe
+      );
+  
+      if (!updatedRecipe) {
+        return res
+          .status(StatusCodes.NOT_FOUND)
+          .json({ message: 'Recipe not found' });
+      }
+  
+      res.status(StatusCodes.OK).json(updatedRecipe);
+    } catch (error) {
+      console.error(error); // Log the error for debugging purposes
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: 'Error updating recipe', error: error.message });
     }
-
-    res.status(StatusCodes.OK).json({ message: 'Recipe deleted successfully' });
-  } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: 'Error deleting recipe' });
-  }
 });
+
+// Delete a saved recipe
+const deleteRecipe = asyncWrapper(async (req, res) => {
+  const {
+      user: { userId },
+      params: { recipeId },
+  } = req;
+
+  // Find and delete the recipe with the recipe ID created by the user
+  try {
+      const deletedRecipe = await Recipe.findOneAndDelete({
+        _id: recipeId,
+        recipeCreatedBy: userId,
+      });
+  
+      if (!deletedRecipe) {
+        return res
+          .status(StatusCodes.NOT_FOUND)
+          .json({ message: 'Recipe not found' });
+      }
+  
+      res.status(StatusCodes.OK).json({ message: 'Recipe deleted successfully' });
+    } catch (error) {
+      console.error(error); // Log the error for debugging purposes
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: 'Error deleting recipe', error: error.message });
+    }
+  });
 
 module.exports = {
   fetchAiRecipe,
   createAiRecipe,
-  getAllAiRecipe,
-  getAiRecipe,
-  updateAiRecipe,
-  deleteAiRecipe,
+  createManualRecipe,
+  getAllRecipes,
+  getRecipe,
+  updateRecipe,
+  deleteRecipe,
 };
