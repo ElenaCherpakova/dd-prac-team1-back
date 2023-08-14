@@ -15,16 +15,24 @@ const logger = require('morgan');
 const rateLimiter = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
+const cloudinary = require('cloudinary');
 
 /*routes*/
 const mainRouter = require('./routes/mainRouter.js');
 const authRouter = require('./routes/auth_routes.js');
 const recipeRouter = require('./routes/recipe_routes');
+
+/*middleware*/
 const authMiddleware = require('./middleware/authentication');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
-/* middleware */
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
+
 app.use(
   rateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes

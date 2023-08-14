@@ -42,18 +42,21 @@ const transformRecipeData = (openAIOutput) => {
       return wordQty[value];
     }
     // Check if the value is a fraction
-    if (/^\d+(\.\d+)?\/\d+(\.\d+)?$/.test(value)) {
+    const fractionRegex = /^\d+(\.\d+)?\/\d+(\.\d+)?$/;
+    if (fractionRegex.test(value)) {
       return convertFractionToDecimal(value);
     }
     return Number(value);
   };
 
   const recipeIngredients = ingredients.map((ingredient) => {
+    const [quantityValue] =
+      ingredient.quantity.match(
+        /^[\d\s\/]+|to taste|for serving|for garnish/
+      ) || [];
     return {
       ingredientName: ingredient.name,
-      ingredientAmount: convertIngredientAmountIntoInteger(
-        ingredient.quantity.split(' ')[0]
-      ),
+      ingredientAmount: convertIngredientAmountIntoInteger(quantityValue),
       ingredientUnit: isValidIngredientUnitEnum(ingredient.unit)
         ? ingredient.unit
         : 'other',
