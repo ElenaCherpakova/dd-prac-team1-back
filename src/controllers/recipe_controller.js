@@ -164,34 +164,52 @@ const getRecipe = asyncWrapper(async (req, res) => {
   }
 });
 
-// Update a saved recipe
-const updateRecipe = asyncWrapper(async (req, res) => {
-  const {
-    body,
-    user: { userId },
-    params: { recipeId },
-  } = req;
+const updateRecipe = async (req, res) => {
+  const { recipeId } = req.params;
+  const { userId } = req.user;
+  const newRecipe = { ...req.body };
 
-  if (req.file) {
-    const response = await cloudinary.v2.uploader.upload(req.file.path);
-    await fs.unlink(req.file.path);
-    body.recipeImage = response.secure_url;
-    body.recipeImagePublic = response.public_id;
-  }
-  const updatedRecipe = await Recipe.findOneAndUpdate(
-    {
+  try {
+    const recipe = await Recipe.findOne({
       _id: recipeId,
       recipeCreatedBy: userId,
-    },
-    body,
-    // { new: true, runValidators: true } // Return the updated recipe
-  );
-  if (req.file && updatedRecipe.recipeImagePublic) {
-    await cloudinary.v2.uploader.destroy(updatedRecipe.recipeImagePublic);
-  }
+    });
 
-  res.status(StatusCodes.OK).json(updatedRecipe);
-});
+    if (!recipe) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: 'Recipe not found' });
+    }
+    let oldRecipeImgPublicId = null;
+
+    // Handle image upload to Cloudinary
+    if (req.file) {
+      const response = await cloudinary.v2.uploader.upload(req.file.path);
+      // Delete the temporarily uploaded file from public/upload folder
+      await fs.unlink(req.file.path);
+      newRecipe.recipeImage = response.secure_url;
+      newRecipe.recipeImagePublic = response.public_id;
+      oldRecipeImgPublicId = recipe.recipeImagePublic;
+    }
+    // Update text fields
+    Object.assign(recipe, newRecipe);
+
+    // Save the updated recipe to MongoDB
+    const updatedRecipe = await recipe.save();
+
+    // Delete the old image from Cloudinary
+    if (oldRecipeImgPublicId) {
+      await cloudinary.v2.uploader.destroy(oldRecipeImgPublicId);
+    }
+
+    res.status(StatusCodes.OK).json(updatedRecipe);
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: 'Error updating recipe', error: error.message });
+  }
+};
+
 // Delete a saved recipe
 const deleteRecipe = asyncWrapper(async (req, res) => {
   const {

@@ -145,7 +145,7 @@ const RecipeSchema = new mongoose.Schema(
     recipeImage: {
       type: String,
     },
-    imageRecipePublic: {
+    recipeImagePublic: {
       type: String,
     },
     recipeCreatedBy: {
