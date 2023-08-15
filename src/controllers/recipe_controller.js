@@ -106,22 +106,25 @@ const createManualRecipe = asyncWrapper(async (req, res) => {
       .status(StatusCodes.BAD_REQUEST)
       .json({ message: 'No file was uploaded' });
   }
-  // catch all data from front-end for creating recipe
-  const manualRecipeData = { ...req.body }; // shallow copy of object using spread operator. 
+  const manualRecipeData = { ...req.body }; // shallow copy of object using spread operator.
   // Set the recipe's creator to the authenticated user's ID
   manualRecipeData.recipeCreatedBy = req.user.userId;
   // If there's an uploaded image, associate its path with the recipe
-  if (req.file) {
+  try {
     const response = await cloudinary.v2.uploader.upload(req.file.path);
-    // console.log(response);
+    console.log(response);
     await fs.unlink(req.file.path);
     manualRecipeData.recipeImage = response.secure_url;
     manualRecipeData.recipeImagePublic = response.public_id;
+    // Create a new recipe using the data from the request body
+    const recipe = await Recipe.create(manualRecipeData);
+    console.log('HERE IS RECIPE', recipe);
+    res.status(StatusCodes.CREATED).json({ recipe });
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: 'Error uploading image or creating recipe' });
   }
-  // Create a new recipe using the data from the request body
-  const recipe = await Recipe.create(manualRecipeData);
-  console.log('HERE IS RECIPE', recipe);
-  res.status(StatusCodes.CREATED).json({ recipe });
 });
 
 // Get all recipes created by the authenticated user and sort them by creation date
@@ -169,40 +172,26 @@ const updateRecipe = asyncWrapper(async (req, res) => {
     params: { recipeId },
   } = req;
 
-  // Find and update the recipe with the recipe ID created by the user
-  try {
-    if (req.file) {
-      const response = await cloudinary.v2.uploader.upload(req.file.path);
-      await fs.unlink(req.file.path);
-      body.recipeImage = response.secure_url;
-      body.recipeImagePublic = response.public_id;
-    }
-    const updatedRecipe = await Recipe.findOneAndUpdate(
-      {
-        _id: recipeId,
-        recipeCreatedBy: userId,
-      },
-      body,
-      { new: true, runValidators: true } // Return the updated recipe
-    );
-    if (req.file && updatedRecipe.recipeImagePublic) {
-      await cloudinary.v2.uploader.destroy(updatedRecipe.recipeImagePublic);
-    }
-    if (!updatedRecipe) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: 'Recipe not found' });
-    }
-
-    res.status(StatusCodes.OK).json(updatedRecipe);
-  } catch (error) {
-    console.error(error); // Log the error for debugging purposes
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: 'Error updating recipe', error: error.message });
+  if (req.file) {
+    const response = await cloudinary.v2.uploader.upload(req.file.path);
+    await fs.unlink(req.file.path);
+    body.recipeImage = response.secure_url;
+    body.recipeImagePublic = response.public_id;
   }
-});
+  const updatedRecipe = await Recipe.findOneAndUpdate(
+    {
+      _id: recipeId,
+      recipeCreatedBy: userId,
+    },
+    body,
+    // { new: true, runValidators: true } // Return the updated recipe
+  );
+  if (req.file && updatedRecipe.recipeImagePublic) {
+    await cloudinary.v2.uploader.destroy(updatedRecipe.recipeImagePublic);
+  }
 
+  res.status(StatusCodes.OK).json(updatedRecipe);
+});
 // Delete a saved recipe
 const deleteRecipe = asyncWrapper(async (req, res) => {
   const {

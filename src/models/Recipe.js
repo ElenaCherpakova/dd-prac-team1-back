@@ -80,7 +80,7 @@ const RecipeSchema = new mongoose.Schema(
         'Side Dish',
         'Sandwich',
         'Picnic Ideas',
-        'Smoothy',
+        'Smoothie',
         'Party Menu',
       ],
     },
@@ -143,6 +143,9 @@ const RecipeSchema = new mongoose.Schema(
       },
     },
     recipeImage: {
+      type: String,
+    },
+    imageRecipePublic: {
       type: String,
     },
     recipeCreatedBy: {
