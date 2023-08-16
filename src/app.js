@@ -20,6 +20,7 @@ const helmet = require('helmet');
 const mainRouter = require('./routes/mainRouter.js');
 const authRouter = require('./routes/auth_routes.js');
 const recipeRouter = require('./routes/recipe_routes');
+const mealRouter = require('./routes/mealPlanner_routes');
 const authMiddleware = require('./middleware/authentication');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
@@ -53,19 +54,12 @@ app.use(favicon(__dirname + '/public/favicon.ico'));
 
 app.use(session(session_params));
 
-app.get('/', (req, res) => {
-  res.send('Hello World');
-});
-
-app.get('/api/v1/test', (req, res) => {
-  res.json({ msg: 'test route' });
-});
 
 /* routes */
 app.use('/api/v1', mainRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/recipes', authMiddleware, recipeRouter);
-
+app.use('/api/v1/meal-planner', authMiddleware, mealRouter);
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 

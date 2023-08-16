@@ -6,7 +6,6 @@ const mealSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Recipe',
     required: true,
-    unique: true,
   },
 });
 
@@ -33,4 +32,4 @@ const mealWeeklyPlanner = new Schema({
   },
 });
 
-module.exports = mongoose.model('WeeklyPlanner', mealWeeklyPlanner);
+module.exports = mongoose.model('Weekly_Planner', mealWeeklyPlanner);
