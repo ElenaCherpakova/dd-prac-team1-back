@@ -23,13 +23,30 @@ const transformRecipeData = (openAIOutput) => {
   } = openAIOutput;
 
   const convertFractionToDecimal = (fraction) => {
-    const [numerator, denominator] = fraction.split('/');
-    const parsedNumerator = Number(numerator);
-    const parsedDenominator = Number(denominator);
-    if (parsedDenominator === 0) {
-      return NaN;
+    if (!fraction) return NaN;
+    const [wholeNum, fract] = fraction.trim().split(' ');
+
+    let total = 0;
+
+    if (wholeNum) {
+      if (!wholeNum.includes('/')) {
+        total += Number(wholeNum);
+      } else {
+        const [numerator, denominator] = wholeNum.split('/');
+        if (denominator === '0' || !denominator) {
+          return NaN;
+        }
+        total += Number(numerator) / Number(denominator);
+      }
     }
-    return parsedNumerator / parsedDenominator;
+    if (fract) {
+      const [numerator, denominator] = fract.split('/');
+      if (denominator === '0' || !denominator) {
+        return NaN;
+      }
+      total += Number(numerator) / Number(denominator);
+    }
+    return total;
   };
 
   const wordQty = {
@@ -42,11 +59,11 @@ const transformRecipeData = (openAIOutput) => {
       return wordQty[value];
     }
     // Check if the value is a fraction
-    const fractionRegex = /^\d+(\.\d+)?\/\d+(\.\d+)?$/;
+    const fractionRegex = /^(\d+\s)?(\d+\/\d+)?$/;
     if (fractionRegex.test(value)) {
       return convertFractionToDecimal(value);
     }
-    return Number(value);
+    return Number(value) || NaN;
   };
 
   const recipeIngredients = ingredients.map((ingredient) => {
