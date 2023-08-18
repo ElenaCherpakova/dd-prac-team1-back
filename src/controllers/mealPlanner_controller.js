@@ -44,7 +44,7 @@ const createMealPlan = asyncWrapper(async (req, res) => {
 });
 
 const updateMealPlan = asyncWrapper(async (req, res) => {
-  const { userId } = req.user;
+  const { mealCreatedBy } = req.user;
   const { id: mealPlanId } = req.params;
   const { recipeId, dayOfWeek, mealSlot } = req.body;
 
@@ -92,4 +92,10 @@ const updateMealPlan = asyncWrapper(async (req, res) => {
     .json({ mealPlan, message: 'Meal plan updated successfully' });
 });
 
-module.exports = { createMealPlan, updateMealPlan };
+const getAllMealPlan = asyncWrapper(async (req, res) => {
+  const { userId } = req.user;
+  const mealPlans = await mealPlanner.find({ userId });
+  res.status(StatusCodes.OK).json({ mealPlans, count: mealPlans.length });
+});
+
+module.exports = { createMealPlan, updateMealPlan, getAllMealPlan };
