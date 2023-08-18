@@ -44,7 +44,7 @@ const createMealPlan = asyncWrapper(async (req, res) => {
 });
 
 const updateMealPlan = asyncWrapper(async (req, res) => {
-  const { mealCreatedBy } = req.user;
+  const { userId } = req.user;
   const { id: mealPlanId } = req.params;
   const { recipeId, dayOfWeek, mealSlot } = req.body;
 
@@ -54,42 +54,44 @@ const updateMealPlan = asyncWrapper(async (req, res) => {
       .json({ message: 'Missing required fields' });
   }
 
-  // check if a meal plan already exists for the same day and slot
-  const existingMealPlan = await mealPlanner.findOne({
-    userId,
-    dayOfWeek,
-    mealSlot,
-  });
-  if (existingMealPlan && existingMealPlan._id.toString() !== mealPlanId) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      message:
-        'A meal plan already exists for the same day and slot. Please choose a different recipe or slot.',
+  try {
+    // check if a meal plan already exists for the same day and slot
+    const existingMealPlan = await mealPlanner.findOne({
+      userId,
+      dayOfWeek,
+      mealSlot,
     });
+    if (existingMealPlan && existingMealPlan._id.toString() !== mealPlanId) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message:
+          'A meal plan already exists for the same day and slot. Please choose a different recipe or slot.',
+      });
+    }
+    //check for existing meal plan with the given id and user id
+    let mealPlanData = {
+      userId,
+      dayOfWeek,
+      mealSlot,
+      recipeId,
+    };
+    let mealPlan = await mealPlanner.findOneAndUpdate(
+      { _id: mealPlanId, userId },
+      mealPlanData,
+      { new: true, runValidators: true }
+    );
+    if (!mealPlan) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: 'Meal plan not found' });
+    }
+    res
+      .status(StatusCodes.OK)
+      .json({ mealPlan, message: 'Meal plan updated successfully' });
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: 'Error updating meal plan', error: error.message });
   }
-  //check for existing meal plan with the given id and user id
-  let mealPlanData = {
-    userId,
-    dayOfWeek,
-    mealSlot,
-    recipeId,
-  };
-  let mealPlan = await mealPlanner.findOneAndUpdate(
-    { _id: mealPlanId, userId },
-    mealPlanData,
-    { new: true, runValidators: true }
-  );
-  if (!mealPlan) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ message: 'Meal plan not found' });
-  }
-  console.log(mealPlan);
-
-  //save the meal plan
-  await mealPlan.save();
-  res
-    .status(StatusCodes.OK)
-    .json({ mealPlan, message: 'Meal plan updated successfully' });
 });
 
 const getAllMealPlan = asyncWrapper(async (req, res) => {
@@ -98,4 +100,29 @@ const getAllMealPlan = asyncWrapper(async (req, res) => {
   res.status(StatusCodes.OK).json({ mealPlans, count: mealPlans.length });
 });
 
-module.exports = { createMealPlan, updateMealPlan, getAllMealPlan };
+const deleteMealPlan = asyncWrapper(async (req, res) => {
+  const { userId } = req.user;
+  const { id: mealPlanId } = req.params;
+  try {
+    const mealPlan = await mealPlanner.findOneAndDelete({
+      _id: mealPlanId,
+      userId,
+    });
+    if (!mealPlan) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: 'Meal plan not found' });
+    }
+    res.status(StatusCodes.OK).json({ mealPlan, message: 'Meal plan deleted' });
+  } catch (error) {
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: 'Error deleting meal plan', error: error.message });
+  }
+});
+module.exports = {
+  createMealPlan,
+  updateMealPlan,
+  getAllMealPlan,
+  deleteMealPlan,
+};
