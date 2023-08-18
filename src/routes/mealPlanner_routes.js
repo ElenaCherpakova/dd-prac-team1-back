@@ -6,6 +6,6 @@ const {
 } = require('../controllers/mealPlanner_controller');
 
 router.post('/', createMealPlan);
-// router.put('/:id', updateMealPlan);
+router.put('/:id', updateMealPlan);
 
 module.exports = router;

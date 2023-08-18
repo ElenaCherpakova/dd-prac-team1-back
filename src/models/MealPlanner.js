@@ -1,7 +1,28 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const mealSchema = new Schema({
+const mealPlanner = new Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  dayOfWeek: {
+    type: String,
+    enum: [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ],
+  },
+  mealSlot: {
+    type: String,
+    enum: ['breakfast', 'lunch', 'dinner'],
+  },
   recipeId: {
     type: Schema.Types.ObjectId,
     ref: 'Recipe',
@@ -9,27 +30,4 @@ const mealSchema = new Schema({
   },
 });
 
-const DaySchema = new Schema({
-  breakfast: mealSchema,
-  lunch: mealSchema,
-  dinner: mealSchema,
-});
-
-const mealWeeklyPlanner = new Schema({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  days: {
-    Monday: DaySchema,
-    Tuesday: DaySchema,
-    Wednesday: DaySchema,
-    Thursday: DaySchema,
-    Friday: DaySchema,
-    Saturday: DaySchema,
-    Sunday: DaySchema,
-  },
-});
-
-module.exports = mongoose.model('Weekly_Planner', mealWeeklyPlanner);
+module.exports = mongoose.model('mealPlanner', mealPlanner);
