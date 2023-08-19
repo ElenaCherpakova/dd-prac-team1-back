@@ -33,7 +33,7 @@ const recipeIngredientSchema = new mongoose.Schema({
 const tagSchema = new mongoose.Schema({
   tagName: {
     type: String,
-    required: true,
+    // required: true,
     trim: true,
     set: (value) =>
       value.match(/(\p{L})|((?<=\p{L})(-| )(?=\p{L}))/gu).join(''),
@@ -80,7 +80,7 @@ const RecipeSchema = new mongoose.Schema(
         'Side Dish',
         'Sandwich',
         'Picnic Ideas',
-        'Smoothie',
+        'Smoothy',
         'Party Menu',
       ],
     },
