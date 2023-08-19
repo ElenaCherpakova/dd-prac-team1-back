@@ -107,6 +107,7 @@ const createManualRecipe = asyncWrapper(async (req, res) => {
       .json({ message: 'No file was uploaded' });
   }
   const manualRecipeData = { ...req.body }; // shallow copy of object using spread operator.
+  console.log('HERE', manualRecipeData);
   // Set the recipe's creator to the authenticated user's ID
   manualRecipeData.recipeCreatedBy = req.user.userId;
   // If there's an uploaded image, associate its path with the recipe
@@ -168,6 +169,7 @@ const updateRecipe = async (req, res) => {
   const { recipeId } = req.params;
   const { userId } = req.user;
   const newRecipe = { ...req.body };
+  console.log('IM HERE', newRecipe);
 
   try {
     const recipe = await Recipe.findOne({
@@ -191,6 +193,25 @@ const updateRecipe = async (req, res) => {
       newRecipe.recipeImagePublic = response.public_id;
       oldRecipeImgPublicId = recipe.recipeImagePublic;
     }
+
+    if ('recipeTags' in newRecipe) {
+      if (newRecipe.recipeTags.length === 0) {
+        recipe.recipeTags = [];
+      } else {
+        recipe.recipeTags = newRecipe.recipeTags;
+      }
+    }
+
+    if ('recipeSpecialDiets' in newRecipe) {
+      if (newRecipe.recipeSpecialDiets.length === 0) {
+        recipe.recipeSpecialDiets = [];
+      } else {
+        recipe.recipeSpecialDiets = newRecipe.recipeSpecialDiets;
+      }
+    }
+    // Update other fields without overwriting recipeTags and recipeSpecialDiets
+    delete newRecipe.recipeTags;
+    delete newRecipe.recipeSpecialDiets;
     // Update text fields
     Object.assign(recipe, newRecipe);
 
