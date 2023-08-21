@@ -1,5 +1,5 @@
 const { StatusCodes } = require('http-status-codes');
-const CustomMulterError = require('../errors/multer');
+const multer = require('multer');
 
 const MONGO_ERR_DUPLICATE_ENTRY = 11000;
 
@@ -10,19 +10,12 @@ const errorHandlerMiddleware = (err, req, res, next) => {
     msg: err.message || 'Something went wrong, please try again later',
   };
 
-  if (err instanceof CustomMulterError) {
-    if (err.errorType === 'LIMIT_FILE_SIZE') {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
       customError.msg = 'Image size too large, max 5MB allowed';
       customError.statusCode = 400;
-    } else if (err.errorType === 'INVALID_FILE_TYPE') {
-      customError.msg = 'Invalid file type';
-      customError.statusCode = 400;
-    } else {
-      customError.msg = 'Something went wrong, please try again later';
-      customError.statusCode = 500;
     }
   }
-
   if (err.name === 'ValidationError') {
     customError.msg = Object.values(err.errors)
       .map((item) => item.message)
