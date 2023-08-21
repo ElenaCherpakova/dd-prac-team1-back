@@ -5,6 +5,7 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const session = require('express-session');
 const session_params = require('./sessionConfig');
 const xssClean = require('./middleware/xssClean');
@@ -22,6 +23,7 @@ const mainRouter = require('./routes/mainRouter.js');
 const authRouter = require('./routes/auth_routes.js');
 const recipeRouter = require('./routes/recipe_routes');
 const mealRouter = require('./routes/mealPlanner_routes');
+const shoppingListRouter = require('./routes/shoppingList_routes');
 
 /*middleware*/
 const authMiddleware = require('./middleware/authentication');
@@ -68,6 +70,7 @@ app.use('/api/v1', mainRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/recipes', authMiddleware, recipeRouter);
 app.use('/api/v1/meal-planner', authMiddleware, mealRouter);
+app.use('/api/v1/shopping-list', authMiddleware, shoppingListRouter);
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
