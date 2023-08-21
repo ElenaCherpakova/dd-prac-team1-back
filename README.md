@@ -72,3 +72,26 @@ When a user creates a manual recipe or an AI-generated recipe, the 'recipeCreate
 
 5. Error Handling
 All responses follow a consistent format. When errors occur, appropriate HTTP status codes are returned along with error messages in the response body.
+
+# Shopping List API
+
+1. The Shopping List API provides functionality for users to create and manage their shopping lists. 
+Users can add recipe ingredients to their shopping list, and duplicate ingredients will be summed up.
+
+2. Endpoints    
+    
+    2.1. Add Recipe Ingredients to Shopping List
+Endpoint: POST /api/v1/shopping-list/:recipeId
+Description: Add ingredients of a specific recipe to the user's shopping list. Duplicated ingredients will be summed up.
+Request Parameters:recipeId: ID of the recipe to add ingredients from
+Authorization: Required (User must be authenticated)
+Response: 201 Created if successful, with a JSON message indicating success.    
+    2.2. Get User's Shopping List
+Endpoint: GET /api/v1/shopping-list
+Description: Retrieve the user's shopping list containing all added ingredients.
+Authorization: Required (User must be authenticated)
+Response: 200 OK with a JSON object representing the user's shopping list.
+
+3. Usage
+User is required to be authenticated.The recipe's ingredients added to the shopping list by sending a POST request to the appropriate endpoint with the recipe ID.The shopping list is retrieved by sending a GET request to the /shopping-list endpoint.
+Duplicate ingredients from multiple recipes will be summed up in the shopping list.
