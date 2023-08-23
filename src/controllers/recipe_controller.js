@@ -32,7 +32,7 @@ const fetchAiRecipe = async (req, res) => {
           content: `User receives a recipe based on following ingredient: ${query}. Preferences or Dietaries:${optValue}`,
         },
       ],
-      temperature: 0.5,
+      temperature: 0.4,
       max_tokens: 750,
       top_p: 1,
       frequency_penalty: 0,
