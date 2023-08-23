@@ -32,7 +32,7 @@ const fetchAiRecipe = async (req, res) => {
           content: `User receives a recipe based on following ingredient: ${query}. Preferences or Dietaries:${optValue}`,
         },
       ],
-      temperature: 0.4,
+      temperature: 0.5,
       max_tokens: 750,
       top_p: 1,
       frequency_penalty: 0,
@@ -101,7 +101,7 @@ const createAiRecipe = asyncWrapper(async (req, res) => {
 
 // Create a new manual recipe
 const createManualRecipe = asyncWrapper(async (req, res) => {
-  if (!req.file) {
+  if (!req.file) {   
     return res
       .status(StatusCodes.BAD_REQUEST)
       .json({ message: 'No file was uploaded' });
@@ -184,6 +184,7 @@ const updateRecipe = async (req, res) => {
     }
     let oldRecipeImgPublicId = null;
 
+   
     // Handle image upload to Cloudinary
     if (req.file) {
       const response = await cloudinary.v2.uploader.upload(req.file.path);

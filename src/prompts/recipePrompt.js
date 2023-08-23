@@ -11,21 +11,24 @@ const myRecipePrompt = {
       },
       ingredients: {
         type: 'array',
-        description: 'Ingredients',
+        description: 'List of ingredients used in the recipe.',
         items: {
           type: 'object',
           properties: {
             name: {
               type: 'string',
-              description: 'Ingredient name',
+              description:
+                'Name of the ingredient. This should be a singular, common name for the ingredient (e.g., "chicken", "pomegranate", "salt"). Avoid brand names or specific varieties unless they are essential to the recipe.',
             },
             quantity: {
               type: 'string',
-              description: 'Ingredient quantity',
+              description:
+                'Quantity of the ingredient, represented only as a number, fraction, or decimal (e.g., "2", "1/2", or "1.5"). Do not include units here.',
             },
             unit: {
               type: 'string',
-              description: 'Ingredient unit of measurement',
+              description:
+                'Unit of measurement for the ingredient. Only standard measurement units should be used (e.g., "kg", "g", "cup", etc.).',
               enum: [
                 'kg',
                 'g',
@@ -47,10 +50,12 @@ const myRecipePrompt = {
       },
       instructions: {
         type: 'array',
-        description: 'Instructions',
+        description:
+          'Step-by-step cooking instructions. Ensure that each instruction is clear and concise.',
         items: {
           type: 'string',
-          description: 'Instruction',
+          description:
+            'A single step in the recipe, written in the imperative mood (e.g., "Cut the chicken", "Stir the mixture").',
         },
       },
       categories: {
@@ -77,7 +82,8 @@ const myRecipePrompt = {
       },
       servingFor: {
         type: 'number',
-        description: 'Serving for',
+        description:
+          'Number of servings. For this request, please provide recipes that serve 2 persons.',
       },
       prepTimeInMinutes: {
         type: 'number',
@@ -152,7 +158,7 @@ const myRecipePrompt = {
                 'Lactose Free',
                 'Dairy Free',
                 'Soy Free',
-                'None'
+                'None',
               ],
             },
           ],
@@ -198,7 +204,7 @@ const myRecipePrompt = {
         'Cook for 30 minutes',
       ],
       categories: ['Salad'],
-      servingFor: 4,
+      servingFor: 2,
       prepTimeInMinutes: 10,
       cookTimeInMinutes: 30,
       totalTimeInMinutes: 40,
