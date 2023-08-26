@@ -9,6 +9,11 @@ const generateImagePrompt = require('../prompts/generateImagePrompt');
 const cloudinary = require('cloudinary');
 const fs = require('fs').promises;
 
+const DEFAULT_IMAGE_URL =
+  'https://res.cloudinary.com/djidbbhk1/image/upload/v1693072469/default_image_lv6ume.png';
+
+const DEFAULT_PUBLIC_ID = 'default_image_lv6ume';
+
 const fetchAiRecipe = async (req, res) => {
   const { query, optionValues } = req.body;
   const optValue = optionValues.length > 0 ? optionValues.join(', ') : '';
@@ -101,22 +106,23 @@ const createAiRecipe = asyncWrapper(async (req, res) => {
 
 // Create a new manual recipe
 const createManualRecipe = asyncWrapper(async (req, res) => {
-  if (!req.file) {   
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ message: 'No file was uploaded' });
-  }
   const manualRecipeData = { ...req.body }; // shallow copy of object using spread operator.
   console.log('HERE', manualRecipeData);
   // Set the recipe's creator to the authenticated user's ID
   manualRecipeData.recipeCreatedBy = req.user.userId;
-  // If there's an uploaded image, associate its path with the recipe
   try {
-    const response = await cloudinary.v2.uploader.upload(req.file.path);
-    console.log(response);
-    await fs.unlink(req.file.path);
-    manualRecipeData.recipeImage = response.secure_url;
-    manualRecipeData.recipeImagePublic = response.public_id;
+    //if there is no uploaded file by user, upload default image
+    let imageResponse = {};
+    if (!req.file) {
+      imageResponse.secure_url = DEFAULT_IMAGE_URL;
+      imageResponse.public_id = DEFAULT_PUBLIC_ID;
+    } else {
+      // If there's an uploaded image, associate its path with the recipe
+      imageResponse = await cloudinary.v2.uploader.upload(req.file.path);
+      await fs.unlink(req.file.path);
+    }
+    manualRecipeData.recipeImage = imageResponse.secure_url;
+    manualRecipeData.recipeImagePublic = imageResponse.public_id;
     // Create a new recipe using the data from the request body
     const recipe = await Recipe.create(manualRecipeData);
     console.log('HERE IS RECIPE', recipe);
@@ -184,7 +190,6 @@ const updateRecipe = async (req, res) => {
     }
     let oldRecipeImgPublicId = null;
 
-   
     // Handle image upload to Cloudinary
     if (req.file) {
       const response = await cloudinary.v2.uploader.upload(req.file.path);
