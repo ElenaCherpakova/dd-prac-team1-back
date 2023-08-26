@@ -11,71 +11,110 @@ const myRecipePrompt = {
       },
       ingredients: {
         type: 'array',
-        description: 'Ingredients',
+        description: 'List of ingredients used in the recipe.',
         items: {
           type: 'object',
           properties: {
             name: {
               type: 'string',
-              description: 'Ingredient name',
+              description:
+                'Name of the ingredient. This should be a singular, common name for the ingredient (e.g., "chicken", "pomegranate", "salt"). Avoid brand names or specific varieties unless they are essential to the recipe.',
             },
             quantity: {
               type: 'string',
-              description: 'Ingredient quantity',
+              description:
+                'Quantity of the ingredient, represented only as a number, fraction, or decimal (e.g., "2", "1/2", or "1.5"). Do not include units here.',
+            },
+            unit: {
+              type: 'string',
+              description:
+                'Unit of measurement for the ingredient. Only standard measurement units should be used (e.g., "kg", "g", "cup", etc.).',
+              enum: [
+                'kg',
+                'g',
+                'lbs',
+                'cup',
+                'tsp',
+                'tbsp',
+                'cups',
+                'cloves',
+                'ml',
+                'l',
+                'medium',
+                'pinch',
+                'other',
+              ],
             },
           },
         },
       },
       instructions: {
         type: 'array',
-        description: 'Instructions',
+        description:
+          'Step-by-step cooking instructions. Ensure that each instruction is clear and concise.',
         items: {
           type: 'string',
-          description: 'Instruction',
+          description:
+            'A single step in the recipe, written in the imperative mood (e.g., "Cut the chicken", "Stir the mixture").',
         },
       },
       categories: {
-        type: 'array',
-        description: 'Categories',
-        items: {
-          type: 'string',
-          description: 'Category',
-        },
+        type: 'string',
+        description:
+          'Category. Please provide only one category from the following options:',
+        enum: [
+          'Main Dish',
+          'Snack',
+          'Soups',
+          'Cream Soup',
+          'Cocktail',
+          'Salad',
+          'Dessert',
+          'Kids Menu',
+          'Breakfast',
+          'Appetizer',
+          'Side Dish',
+          'Sandwich',
+          'Picnic Ideas',
+          'Smoothy',
+          'Party Menu',
+        ],
       },
       servingFor: {
-        type: 'string',
-        description: 'Serving for',
+        type: 'number',
+        description:
+          'Number of servings. For this request, please provide recipes that serve 2 persons.',
       },
       prepTimeInMinutes: {
-        type: 'string',
+        type: 'number',
         description: 'Preparing time in minutes',
       },
       cookTimeInMinutes: {
-        type: 'string',
+        type: 'number',
         description: 'Cooking time in minutes',
       },
       totalTimeInMinutes: {
-        type: 'string',
+        type: 'number',
         description: 'Total time in minutes',
       },
       nutritionInformation: {
         type: 'object',
-        description: 'Nutrition information',
+        description: 'Nutrition information. All properties must be numbers.',
         properties: {
           calories: {
-            type: 'string',
+            type: 'number',
             description: 'Calories',
           },
           protein: {
-            type: 'string',
+            type: 'number',
             description: 'Protein',
           },
           carbs: {
-            type: 'string',
+            type: 'number',
             description: 'Carbs',
           },
           fat: {
-            type: 'string',
+            type: 'number',
             description: 'Fat',
           },
         },
@@ -83,6 +122,11 @@ const myRecipePrompt = {
       image: {
         type: 'string',
         description: 'Image URL',
+      },
+      recipeComplexityLevel: {
+        type: 'string',
+        description: 'Recipe complexity level',
+        enum: ['easy', 'medium', 'hard'],
       },
       tags: {
         type: 'array',
@@ -96,8 +140,28 @@ const myRecipePrompt = {
         type: 'array',
         description: 'Special Diets',
         items: {
-          type: 'string',
-          description: 'Special Diet',
+          anyOf: [
+            {
+              type: 'string',
+              enum: [
+                'Weight Loss',
+                'Gluten-free',
+                'Pork-free',
+                'Vegetarian',
+                'Vegan',
+                'Gluten-free',
+                'Mediterranean',
+                'Diabetes Friendly',
+                'Low Carb',
+                'Keto',
+                'Low Calorie',
+                'Lactose Free',
+                'Dairy Free',
+                'Soy Free',
+                'None',
+              ],
+            },
+          ],
         },
       },
     },
@@ -105,12 +169,14 @@ const myRecipePrompt = {
       'recipeName',
       'ingredients',
       'instructions',
+      'categories',
       'servingFor',
       'prepTimeInMinutes',
       'cookTimeInMinutes',
       'totalTimeInMinutes',
       'nutritionInformation',
       'image',
+      'recipeComplexityLevel',
       'tags',
       'specialDiets',
     ],
@@ -123,14 +189,12 @@ const myRecipePrompt = {
         {
           name: 'chicken',
           quantity: '1',
+          unit: 'kg',
         },
         {
           name: 'pomegranate',
-          quantity: '1',
-        },
-        {
-          name: 'salt',
-          quantity: '1',
+          quantity: '1/2',
+          unit: 'medium',
         },
       ],
       instructions: [
@@ -139,20 +203,21 @@ const myRecipePrompt = {
         'Add the pomegranate and salt',
         'Cook for 30 minutes',
       ],
-      categories: ['salad', 'vegetarian'],
-      servingFor: '4',
-      prepTimeInMinutes: '10',
-      cookTimeInMinutes: '30',
-      totalTimeInMinutes: '40',
+      categories: ['Salad'],
+      servingFor: 2,
+      prepTimeInMinutes: 10,
+      cookTimeInMinutes: 30,
+      totalTimeInMinutes: 40,
       nutritionInformation: [
-        { calories: '100' },
-        { protein: '110' },
-        { carbs: '100' },
-        { fat: '80' },
+        { calories: 100 },
+        { protein: 110 },
+        { carbs: 100 },
+        { fat: 80 },
       ],
       image: ['https://example.com/image1.jpg'],
+      recipeComplexityLevel: 'easy',
       tags: ['pomegranate', 'chicken', 'salad', 'vegetarian'],
-      specialDiets: ['gluten-free', 'nut-free'],
+      specialDiets: ['Gluten-free', 'Vegetarian'],
     },
   ],
 };

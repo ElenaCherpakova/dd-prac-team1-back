@@ -11,7 +11,21 @@ const recipeIngredientSchema = new mongoose.Schema({
   },
   ingredientUnit: {
     type: String,
-    enum: ['kg', 'g', 'lbs', 'cups', 'tbs', 'tbsp', 'OtherUnit'],
+    enum: [
+      'kg',
+      'g',
+      'lbs',
+      'cup',
+      'tsp',
+      'tbsp',
+      'cups',
+      'cloves',
+      'ml',
+      'l',
+      'medium',
+      'pinch',
+      'other',
+    ],
     //required: true,
   },
 });
@@ -19,9 +33,10 @@ const recipeIngredientSchema = new mongoose.Schema({
 const tagSchema = new mongoose.Schema({
   tagName: {
     type: String,
-    required: true,
+    // required: true,
     trim: true,
-    set: (value) => value.replace(/[^\w\s]/g, '-'),
+    set: (value) =>
+      value.match(/(\p{L})|((?<=\p{L})(-| )(?=\p{L}))/gu).join(''),
   },
 });
 
@@ -52,22 +67,21 @@ const RecipeSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please provide the category'],
       enum: [
-        'Main Dishes',
-        'Snacks',
-        'Soups',
-        'Cream Soups',
-        'Cocktails',
-        'Salads',
-        'Desserts',
+        'Main Dish',
+        'Snack',
+        'Soup',
+        'Cream Soup',
+        'Cocktail',
+        'Salad',
+        'Dessert',
         'Kids Menu',
-        'Breakfasts',
-        'Appetizers',
-        'Side Dishes',
-        'Sandwiches',
+        'Breakfast',
+        'Appetizer',
+        'Side Dish',
+        'Sandwich',
         'Picnic Ideas',
-        'Smoothies',
+        'Smoothy',
         'Party Menu',
-        'CustomCategory',
       ],
     },
     recipeSpecialDiets: [
@@ -83,7 +97,12 @@ const RecipeSchema = new mongoose.Schema(
           'Mediterranean',
           'Diabetes Friendly',
           'Low Carb',
-          'CustomSpecialDiet',
+          'Keto',
+          'Low Calorie',
+          'Lactose Free',
+          'Dairy Free',
+          'Soy Free',
+          'None',
         ],
       },
     ],
@@ -126,12 +145,14 @@ const RecipeSchema = new mongoose.Schema(
     recipeImage: {
       type: String,
     },
-    recipeCreatedBy: [
-      { 
-        type: mongoose.Types.ObjectId,
-        ref: 'User',
-      },
-    ],
+    recipeImagePublic: {
+      type: String,
+    },
+    recipeCreatedBy: {
+      type: mongoose.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
   },
   { timestamps: true }
 );

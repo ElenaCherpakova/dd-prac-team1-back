@@ -1,17 +1,18 @@
-// Generate the image generation prompt with the recipe data
 const generateImagePrompt = (data) => {
-  const imageGenerationPrompt = `Please create a stunning and professional image with an appetizing presentation for the recipe: ${
+  const imageGenerationPrompt = `Create a visually compelling, professionally crafted photo that exudes sophistication for the following recipe: ${
     data.recipeName
-  }.
-    Ingredients: ${data.ingredients
-      .map((ingredient) => `${ingredient.name} (${ingredient.quantity})`)
-      .join(', ')}.
-    Guidelines:
-    1. Use a clean and stylish background that complements the dish.
-    2. Include relevant garnishes or plating elements to enhance visual appeal.
-    3. Ensure effective lighting to highlight dish details.
-    4. Avoid showing any hands or other irrelevant elements in the photo.
-    Add creative touches to make the image visually captivating and aligned with the magazine's aesthetics.`;
+  }. The recipe uses the following ingredients: ${data.ingredients
+    .map((ingredient) => `${ingredient.name})`)
+    .join(
+      ', '
+    )}. Also each generated image should be unique and not a repetition of previously generated images. The image should adhere to these guidelines:
+    1. Uniqueness: Each image created should be distinctly different from the others. Avoid replicating the same layouts, angles, or compositions.
+    2. Dish Focus: The image should focus solely on the dish itself. Avoid including utensils, dishware, or other kitchen items unless they are part of the dish presentation.
+    3. Color Palette: Utilize a light green color palette in the image. This can be achieved through the dish itself, garnishes, or other elements in the photo.
+    4. Background: Use a high-quality, minimalist background that complements the dish and the light green color palette, adding a stylish, professional backdrop.
+    5. Garnish and Plating: The dish should be arranged in a precise and elegant manner, as you would expect in a high-end restaurant. Garnishes that match the light green palette are preferred.
+    6. Composition: The composition should be well thought out and sophisticated, with a focus on the dish's key elements.
+  The ultimate aim is to produce a high-quality, professional image that showcases the recipe in a gourmet cooking magazine style, with a pleasing light green aesthetic and a unique perspective each time.`;
   return imageGenerationPrompt;
 };
 
