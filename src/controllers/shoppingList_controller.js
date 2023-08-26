@@ -1,5 +1,3 @@
-const express = require('express');
-const router = express.Router();
 const asyncWrapper = require('../middleware/async');
 const Recipe = require('../models/Recipe');
 const ShoppingList = require('../models/ShoppingList');
@@ -68,8 +66,70 @@ const getShoppingList = asyncWrapper(async (req, res) => {
   }
 });
 
+// Delete an ingredient from the shopping list
+const deleteIngredientShoppingList = asyncWrapper(async (req, res) => {
+  // Decode the URL-encoded ingredient name
+  const decodedIngredientName = decodeURIComponent(req.params.ingredientName);
+  const userId = req.user.userId;
+
+  try {
+    const shoppingList = await ShoppingList.findOne({ userID: userId });
+
+    if (!shoppingList) {
+      throw new NotFoundError('Shopping list not found');
+    }
+
+    // Find the index of the ingredient to be deleted
+    const ingredientIndex = shoppingList.ingredients.findIndex(
+      (item) => item.ingredientName === decodedIngredientName
+    );
+
+    if (ingredientIndex === -1) {
+      throw new NotFoundError('Ingredient not found in shopping list');
+    }
+
+    // Remove the ingredient from the shopping list
+    shoppingList.ingredients.splice(ingredientIndex, 1);
+
+    await shoppingList.save();
+
+    res.status(200).json({ message: 'Ingredient deleted from shopping list' });
+  } catch (error) {
+    console.error('Error deleting ingredient from shopping list:', error);
+    if (error instanceof NotFoundError) {
+      res.status(404).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'An error occurred while deleting the ingredient' });
+    }
+  }
+});
+
+// Delete the entire shopping list for a user
+const deleteShoppingList = asyncWrapper(async (req, res) => {
+  const userId = req.user.userId;
+
+  try {
+    const shoppingList = await ShoppingList.findOneAndDelete({ userID: userId });
+
+    if (!shoppingList) {
+      throw new NotFoundError('Shopping list not found');
+    }
+
+    res.status(200).json({ message: 'Shopping list deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting shopping list:', error);
+    if (error instanceof NotFoundError) {
+      res.status(404).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'An error occurred while deleting the shopping list' });
+    }
+  }
+});
+
 module.exports = {
   addRecipeToShoppingList,
   createOrUpdateShoppingList,
   getShoppingList,
+  deleteIngredientShoppingList,
+  deleteShoppingList,
 };
