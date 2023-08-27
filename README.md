@@ -91,7 +91,7 @@ Endpoint: GET /api/v1/shopping-list
 Description: Retrieve the user's shopping list containing all added ingredients.
 Authorization: Required (User must be authenticated)
 Response: 200 OK with a JSON object representing the user's shopping list.
-        2.3. DELETE Specific Ingredient in the Shopping list
+    2.3. DELETE Specific Ingredient in the Shopping list
 Endpoint: DELETE /api/v1/shopping-list/:ingredientName
 Description: Delete a specific ingredient from the shopping list by providing its name URL-encoded in the URL.
 Authorization: Required (User must be authenticated). 
@@ -102,12 +102,9 @@ Endpoint: DELETE /api/v1/shopping-list/
 Description: An authorized user can clear the entire shopping list
 Authorization: Required (User must be authenticated). 
 Response: 200 OK with a JSON object representing the success message.
-    2.5. PUT Update Ingredient in Shopping list
-Endpoint: PUT /api/v1/shopping-list/:ingredientName
-Description: manage shopping list by providing of the user with the ability to update ingredient in the shopping list.
-Authorization: Required (User must be authenticated)
-Response: 200 OK with a JSON object representing the user's shopping list.
 
 3. Usage
 User is required to be authenticated.The recipe's ingredients added to the shopping list by sending a POST request to the appropriate endpoint with the recipe ID.The shopping list is retrieved by sending a GET request to the /shopping-list endpoint.
 Duplicate ingredients from multiple recipes will be summed up in the shopping list.
+Ingredient Identification: Each ingredient in the shopping list is uniquely identified by its name. Users can click the "Delete" button next to a specific ingredient to remove it or the user can delete the entire shopping list.
+
