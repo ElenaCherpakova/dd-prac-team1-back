@@ -102,6 +102,11 @@ Endpoint: DELETE /api/v1/shopping-list/
 Description: An authorized user can clear the entire shopping list
 Authorization: Required (User must be authenticated). 
 Response: 200 OK with a JSON object representing the success message.
+    2.5. PUT Update Ingredient Amount in Shopping list
+Endpoint: PUT /api/v1/shopping-list/:ingredientName
+Description: manage shopping list by providing of the user with the ability to update ingredient Amount in the shopping list.
+Authorization: Required (User must be authenticated)
+Response: 200 OK with a JSON object representing the success message.
 
 3. Usage
 User is required to be authenticated.The recipe's ingredients added to the shopping list by sending a POST request to the appropriate endpoint with the recipe ID.The shopping list is retrieved by sending a GET request to the /shopping-list endpoint.
