@@ -23,6 +23,7 @@ const authRouter = require('./routes/auth_routes.js');
 const recipeRouter = require('./routes/recipe_routes');
 const mealRouter = require('./routes/mealPlanner_routes');
 const shoppingListRouter = require('./routes/shoppingList_routes');
+const sendMail = require('./routes/sendMail_route');
 
 /*middleware*/
 const authMiddleware = require('./middleware/authentication');
@@ -33,6 +34,11 @@ cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.CLOUD_API_KEY,
   api_secret: process.env.CLOUD_API_SECRET,
+});
+
+const emailRateLimiter = rateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 requests per windowMs
 });
 
 app.use(
@@ -63,13 +69,13 @@ app.use(favicon(__dirname + '/public/favicon.ico'));
 
 app.use(session(session_params));
 
-
 /* routes */
 app.use('/api/v1', mainRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/recipes', authMiddleware, recipeRouter);
 app.use('/api/v1/meal-planner', authMiddleware, mealRouter);
 app.use('/api/v1/shopping-list', authMiddleware, shoppingListRouter);
+app.use('/api/v1/sendmail', emailRateLimiter, authMiddleware, sendMail);
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
