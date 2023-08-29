@@ -84,7 +84,6 @@ const fetchAiRecipe = async (req, res) => {
       ...data,
       image: imageUrl,
     };
-    console.log(responseData);
     res.status(StatusCodes.OK).send(responseData);
   } catch (err) {
     res
@@ -97,7 +96,6 @@ const fetchAiRecipe = async (req, res) => {
 const createAiRecipe = asyncWrapper(async (req, res) => {
   const recipeData = transformRecipeData(req.body);
   recipeData.recipeCreatedBy = req.user.userId;
-  console.log(recipeData);
   const newRecipe = await Recipe.create(recipeData);
   res
     .status(StatusCodes.CREATED)
@@ -107,7 +105,6 @@ const createAiRecipe = asyncWrapper(async (req, res) => {
 // Create a new manual recipe
 const createManualRecipe = asyncWrapper(async (req, res) => {
   const manualRecipeData = { ...req.body }; // shallow copy of object using spread operator.
-  console.log('HERE', manualRecipeData);
   // Set the recipe's creator to the authenticated user's ID
   manualRecipeData.recipeCreatedBy = req.user.userId;
   try {
@@ -125,7 +122,7 @@ const createManualRecipe = asyncWrapper(async (req, res) => {
     manualRecipeData.recipeImagePublic = imageResponse.public_id;
     // Create a new recipe using the data from the request body
     const recipe = await Recipe.create(manualRecipeData);
-    console.log('HERE IS RECIPE', recipe);
+
     res.status(StatusCodes.CREATED).json({ recipe });
   } catch (error) {
     res
@@ -175,7 +172,6 @@ const updateRecipe = async (req, res) => {
   const { recipeId } = req.params;
   const { userId } = req.user;
   const newRecipe = { ...req.body };
-  console.log('IM HERE', newRecipe);
 
   try {
     const recipe = await Recipe.findOne({
