@@ -1,40 +1,42 @@
 const { StatusCodes } = require('http-status-codes');
-const { BadRequestError } = require('../errors');
 const asyncWrapper = require('../middleware/async');
-const sgMail = require('../mailerConfig');
+const createTransporter = require('../mailerConfig');
 
 const sendMail = asyncWrapper(async (req, res) => {
-  const { name, email, message } = req.body;
-  if (!name || !email || !message) {
-    throw new BadRequestError('Missing required fields: name, email, message');
-  }
-
-  const msg = {
-    to: process.env.FROM_EMAIL,
-    from: process.env.FROM_EMAIL, // Use the email address or domain you verified above
-    replyTo: email,
-    subject: `Message from ${name}`,
-    text: message,
-    html: `
-        <h2>New Message from ${name}</h2>
-        <p><strong>Email To Reply:</strong> ${email}</p>
-        <p><strong>Message:</strong> ${message}</p>
-`,
-  };
-  const confirmationMsg = {
-    to: email,
-    from: process.env.FROM_EMAIL, // Use the email address or domain you verified above
-    subject: `Message received`,
-    templateId: process.env.TEMPLATE_ID,
-    dynamicTemplateData: {
-      name,
-    },
-  };
-
   try {
-    await sgMail.send(msg);
+    const { name, email, message } = req.body;
+    if (!name || !email || !message) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: 'Missing required fields: name, email, message' });
+    }
+
+    const transporter = await createTransporter();
+    const mailOptions = {
+      from: email,
+      to: process.env.FROM_EMAIL,
+      subject: `Message from ${name}`,
+      text: message,
+      html: `
+            <h2>New Message from ${name}</h2>
+            <p><strong>Email To Reply:</strong> ${email}</p>
+            <p><strong>Message:</strong> ${message}</p>
+    `,
+    };
+    await transporter.sendMail(mailOptions);
+    const confirmationMsg = `Thank you for reaching out! We've received your msg and will respond ASAP.`;
+
+    const confirmationMailOptions = {
+      from: process.env.FROM_EMAIL,
+      to: email,
+      subject: `Message received`,
+      text: confirmationMsg,
+      html: `
+            <b>${confirmationMsg}</b>`,
+    };
     // Send the confirmation message to the user
-    await sgMail.send(confirmationMsg);
+    await transporter.sendMail(confirmationMailOptions);
+
     res.status(StatusCodes.OK).json({ message: 'Email sent successfully' });
   } catch (error) {
     res
@@ -42,6 +44,7 @@ const sendMail = asyncWrapper(async (req, res) => {
       .json({ message: 'Error sending email', error: error.message });
   }
 });
+
 module.exports = {
   sendMail,
 };
