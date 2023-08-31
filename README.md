@@ -78,7 +78,7 @@ All responses follow a consistent format. When errors occur, appropriate HTTP st
 1. The Shopping List API provides functionality for users to create and manage their shopping lists. 
 Users can add recipe ingredients to their shopping list, and duplicate ingredients will be summed up.
 
-2. Endpoints    
+2. ENDPOINTS    
     
     2.1. Add Recipe Ingredients to Shopping List
 Endpoint: POST /api/v1/shopping-list/:recipeId
@@ -86,29 +86,44 @@ Description: Add ingredients of a specific recipe to the user's shopping list. D
 Request Parameters:recipeId: ID of the recipe to add ingredients from
 Authorization: Required (User must be authenticated)
 Response: 201 Created if successful, with a JSON message indicating success.    
+    
     2.2. Get User's Shopping List
 Endpoint: GET /api/v1/shopping-list
 Description: Retrieve the user's shopping list containing all added ingredients.
 Authorization: Required (User must be authenticated)
 Response: 200 OK with a JSON object representing the user's shopping list.
+    
     2.3. DELETE Specific Ingredient in the Shopping list
 Endpoint: DELETE /api/v1/shopping-list/:ingredientName
 Description: Delete a specific ingredient from the shopping list by providing its name URL-encoded in the URL.
 Authorization: Required (User must be authenticated). 
     Front-End Encoding/Decoding: Encoding: Before sending the request, need to encode the ingredient name using encodeURIComponent() to handle      spaces and special characters. Decoding: The server automatically decodes the URL-encoded ingredient name using decodeURIComponent() for    accurate processing.
 Response: 200 OK with a JSON object representing the success message.
+    
     2.4. DELETE the Shopping list
 Endpoint: DELETE /api/v1/shopping-list/
 Description: An authorized user can clear the entire shopping list
 Authorization: Required (User must be authenticated). 
 Response: 200 OK with a JSON object representing the success message.
+Error Handling: The system ensures a smooth experience by providing immediate feedback in case of errors, such as missing information or connectivity issues.
+    
     2.5. PUT Update Ingredient Amount in Shopping list
 Endpoint: PUT /api/v1/shopping-list/:ingredientName
 Description: manage shopping list by providing of the user with the ability to update ingredient Amount in the shopping list.
 Authorization: Required (User must be authenticated)
 Response: 200 OK with a JSON object representing the success message.
+Error Handling: The system ensures a smooth experience by providing immediate feedback in case of errors, such as missing information or connectivity issues.
+    
+    2.6. Add Ingredient to the Shopping List
+Endpoint: POST /api/v1/shopping-list/add-ingredient
+Description: This functionality enables authorized users to add ingredients to their shopping list. Users can include the desired ingredient along with its details like  ingredient Name, amount and unit. 
+Authorization: Required (User must be authenticated).
+Response: Upon successful addition, the server responds with a 200 OK status and a JSON object indicating the success of the operation.
+Error Handling: The system ensures a smooth experience by providing immediate feedback in case of errors, such as missing information or connectivity issues.
+Functionality: the code automatically checks if the ingredient already exists in the shopping list. If the ingredient exists, the users receives a message suggesting to update the quantity of the existing ingredient instead of creating a duplicate.
+If the ingredient is not in the list, users receive confirmation that the new ingredient has been successfully added.
 
-3. Usage
+3. USAGE
 User is required to be authenticated.The recipe's ingredients added to the shopping list by sending a POST request to the appropriate endpoint with the recipe ID.The shopping list is retrieved by sending a GET request to the /shopping-list endpoint.
 Duplicate ingredients from multiple recipes will be summed up in the shopping list.
 Ingredient Identification: Each ingredient in the shopping list is uniquely identified by its name. Users can click the "Delete" button next to a specific ingredient to remove it or the user can delete the entire shopping list.

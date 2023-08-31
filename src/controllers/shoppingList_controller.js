@@ -96,11 +96,56 @@ const updateIngredientShoppingList = asyncWrapper(async (req, res) => {
 
     res.status(200).json({ message: 'Ingredient updated in shopping list' });
   } catch (error) {
-    console.error('Error updating ingredient in shopping list:', error);
+    console.error('Error updating ingredient in shopping list:', error);  
     if (error instanceof NotFoundError) {
       res.status(404).json({ error: error.message });
     } else {
       res.status(500).json({ error: 'An error occurred while updating the ingredient' });
+    }
+  }
+});
+
+const addIngredientToShoppingList = asyncWrapper(async (req, res) => {
+  const userId = req.user.userId;
+  const { ingredientName, ingredientAmount, ingredientUnit } = req.body;
+
+  try {
+    const shoppingList = await ShoppingList.findOne({ userID: userId });
+
+    if (!shoppingList) {
+      throw new NotFoundError('Shopping list not found');
+    }
+
+    // Check if the ingredient already exists in the shopping list
+    const existingIngredient = shoppingList.ingredients.find(
+      (item) => item.ingredientName === ingredientName
+    );
+
+    if (existingIngredient) {
+      // If ingredient exists, suggest updating the amount of existing ingredient
+      res.status(200).json({
+        message: 'Ingredient already exists in shopping list. Please update the amount.',
+        existingIngredient,
+      });
+      return;
+    }
+
+    // Add the new ingredient to the shopping list
+    shoppingList.ingredients.push({
+      ingredientName,
+      ingredientAmount,
+      ingredientUnit,
+    });
+
+    await shoppingList.save();
+
+    res.status(200).json({ message: 'Ingredient added to shopping list' });
+  } catch (error) {
+    console.error('Error adding ingredient to shopping list:', error);
+    if (error instanceof NotFoundError) {
+      res.status(404).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'An error occurred while adding the ingredient' });
     }
   }
 });
@@ -166,6 +211,7 @@ const deleteShoppingList = asyncWrapper(async (req, res) => {
 });
 
 module.exports = {
+  addIngredientToShoppingList,
   addRecipeToShoppingList,
   createOrUpdateShoppingList,
   getShoppingList,
