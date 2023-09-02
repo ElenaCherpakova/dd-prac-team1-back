@@ -64,8 +64,7 @@ const addRecipeToShoppingList = asyncWrapper(async (req, res) => {
       ingredientUnit: ingredient.ingredientUnit,
     }));
 
-    const result = await createOrUpdateShoppingList(userId, adjustIngredients);
-    console.log('RESULT', result);
+    await createOrUpdateShoppingList(userId, adjustIngredients);
     res
       .status(StatusCodes.CREATED)
       .json({ message: 'Recipe ingredients added to shopping list' });
