@@ -111,6 +111,11 @@ const addIngredientToShoppingList = asyncWrapper(async (req, res) => {
   const userId = req.user.userId;
   const { ingredientName, ingredientAmount, ingredientUnit } = req.body;
 
+  // Check if required fields are missing
+  if (!ingredientName || !ingredientAmount || !ingredientUnit) {
+    throw new BadRequestError('Missing required fields in the request.');
+  }
+
   try {
     const shoppingList = await ShoppingList.findOne({ userID: userId });
 
