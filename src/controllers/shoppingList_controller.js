@@ -3,8 +3,9 @@ const Recipe = require('../models/Recipe');
 const ShoppingList = require('../models/ShoppingList');
 const User = require('../models/User');
 const { StatusCodes } = require('http-status-codes');
-const { BadRequestError, NotFoundError } = require('../errors');
+const { NotFoundError } = require('../errors');
 const createTransporter = require('../mailerConfig');
+const emailValidation = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 // Create or update shopping list for a recipe
 const createOrUpdateShoppingList = async (userId, ingredients) => {
@@ -237,6 +238,12 @@ const shareShoppingList = asyncWrapper(async (req, res) => {
     if (!recipientEmail) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         message: 'Provide email to who you want to send shopping list',
+      });
+    }
+    // check if email is valid format
+    if (!emailValidation.test(recipientEmail)) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: 'Invalid email format',
       });
     }
     // Fetch the user's details to get their email.
