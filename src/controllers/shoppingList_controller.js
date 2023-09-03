@@ -57,7 +57,7 @@ const addRecipeToShoppingList = asyncWrapper(async (req, res) => {
     const multiplier = servingSize / originalServingSize;
 
     const { recipeIngredients } = recipe;
-    console.log(recipeIngredients);
+
     const adjustIngredients = recipeIngredients.map((ingredient) => ({
       ingredientName: ingredient.ingredientName,
       ingredientAmount: ingredient.ingredientAmount * multiplier,
