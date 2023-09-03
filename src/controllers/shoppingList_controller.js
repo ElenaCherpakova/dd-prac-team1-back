@@ -3,7 +3,7 @@ const Recipe = require('../models/Recipe');
 const ShoppingList = require('../models/ShoppingList');
 const User = require('../models/User');
 const { StatusCodes } = require('http-status-codes');
-const { NotFoundError } = require('../errors');
+const { BadRequestError, NotFoundError } = require('../errors');
 const createTransporter = require('../mailerConfig');
 const emailValidation = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -69,9 +69,9 @@ const addRecipeToShoppingList = asyncWrapper(async (req, res) => {
       .json({ message: 'Recipe ingredients added to shopping list' });
   } catch (error) {
     console.error('Error adding recipe to shopping list:', error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      error: 'An error occurred while adding the recipe to the shopping list',
-    });
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: 'An error occurred while adding the recipe to the shopping list' });
   }
 });
 
@@ -95,13 +95,11 @@ const getShoppingList = asyncWrapper(async (req, res) => {
       .json(shoppingList);
   } catch (error) {
     console.error('Error fetching shopping list:', error);
-    return res
+    res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({
-        error: 'An error occurred while fetching the shopping list',
-      });
-  }
-});
+      .json({ error: 'An error occurred while fetching the shopping list'});
+    }
+  });
 
 // Update an ingredient in the shopping list
 const updateIngredientShoppingList = asyncWrapper(async (req, res) => {
@@ -132,23 +130,32 @@ const updateIngredientShoppingList = asyncWrapper(async (req, res) => {
 
     await shoppingList.save();
 
-    res.status(200).json({ message: 'Ingredient updated in shopping list' });
+    res
+      .status(StatusCodes.OK)
+      .json({ message: 'Ingredient updated in shopping list' });
   } catch (error) {
     console.error('Error updating ingredient in shopping list:', error);
     if (error instanceof NotFoundError) {
-      res.status(404).json({ error: error.message });
+      res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ error: error.message });
     } else {
       res
-        .status(500)
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
         .json({ error: 'An error occurred while updating the ingredient' });
     }
   }
 });
 
+// Add an ingredient to the shopping list
 const addIngredientToShoppingList = asyncWrapper(async (req, res) => {
   const userId = req.user.userId;
   const { ingredientName, ingredientAmount, ingredientUnit } = req.body;
 
+  // Check if required fields are missing
+  if (!ingredientName || !ingredientAmount || !ingredientUnit) {
+    throw new BadRequestError('Missing required fields in the request.');
+  }
   try {
     const shoppingList = await ShoppingList.findOne({ userID: userId });
 
@@ -163,16 +170,14 @@ const addIngredientToShoppingList = asyncWrapper(async (req, res) => {
 
     if (existingIngredient) {
       // If ingredient exists, suggest updating the amount of existing ingredient
-      res.status(200).json({
-        message:
-          'Ingredient already exists in shopping list. Please update the amount.',
-        existingIngredient,
-      });
+      res
+        .status(StatusCodes.OK)
+        .json({ message: 'Ingredient already exists in shopping list. Please update the amount.', existingIngredient, });
       return;
     }
 
     // Add the new ingredient to the shopping list
-    shoppingList.ingredients.push({
+    shoppingList.ingredients.unshift({
       ingredientName,
       ingredientAmount,
       ingredientUnit,
@@ -180,14 +185,18 @@ const addIngredientToShoppingList = asyncWrapper(async (req, res) => {
 
     await shoppingList.save();
 
-    res.status(200).json({ message: 'Ingredient added to shopping list' });
+    res
+      .status(StatusCodes.OK)
+      .json({ message: 'Ingredient added to shopping list' });
   } catch (error) {
     console.error('Error adding ingredient to shopping list:', error);
     if (error instanceof NotFoundError) {
-      res.status(404).json({ error: error.message });
+      res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ error: error.message });
     } else {
       res
-        .status(500)
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
         .json({ error: 'An error occurred while adding the ingredient' });
     }
   }
@@ -220,14 +229,16 @@ const deleteIngredientShoppingList = asyncWrapper(async (req, res) => {
 
     await shoppingList.save();
 
-    res.status(200).json({ message: 'Ingredient deleted from shopping list' });
+    res
+      .status(StatusCodes.OK)
+      .json({ message: 'Ingredient deleted from shopping list' });
   } catch (error) {
     console.error('Error deleting ingredient from shopping list:', error);
     if (error instanceof NotFoundError) {
-      res.status(404).json({ error: error.message });
+      res.status(StatusCodes.NOT_FOUND).json({ error: error.message });
     } else {
       res
-        .status(500)
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
         .json({ error: 'An error occurred while deleting the ingredient' });
     }
   }
@@ -246,14 +257,16 @@ const deleteShoppingList = asyncWrapper(async (req, res) => {
       throw new NotFoundError('Shopping list not found');
     }
 
-    res.status(200).json({ message: 'Shopping list deleted successfully' });
+    res
+      .status(StatusCodes.OK)
+      .json({ message: 'Shopping list deleted successfully' });
   } catch (error) {
     console.error('Error deleting shopping list:', error);
     if (error instanceof NotFoundError) {
-      res.status(404).json({ error: error.message });
+      res.status(StatusCodes.NOT_FOUND).json({ error: error.message });
     } else {
       res
-        .status(500)
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
         .json({ error: 'An error occurred while deleting the shopping list' });
     }
   }
