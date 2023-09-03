@@ -80,17 +80,15 @@ const getShoppingList = asyncWrapper(async (req, res) => {
   try {
     const userId = req.user.userId;
     const shoppingList = await ShoppingList.findOne({ userID: userId });
-
-    // if (!shoppingList) {
-    //   throw new NotFoundError('Shopping list not found');
-    // }
-
     res.status(StatusCodes.OK).json(shoppingList || { ingredients: [] });
   } catch (error) {
     console.error('Error fetching shopping list:', error);
-    res
+    return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ error: 'An error occurred while fetching the shopping list' });
+      .json({
+        error: 'An error occurred while fetching the shopping list',
+        ingredients: [],
+      });
   }
 });
 
