@@ -10,8 +10,9 @@ const emailValidation = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 // During user registration, create or ensure an empty shopping list
 const createOrUpdateShoppingList = async (userId, ingredients) => {
   ingredients = ingredients || [];
-
-  let shoppingList = await ShoppingList.findOne({ userID: userId });
+  let shoppingList;
+try {
+  shoppingList = await ShoppingList.findOne({ userID: userId });
 
   if (!shoppingList) {
     shoppingList = new ShoppingList({ userID: userId, ingredients });
@@ -29,10 +30,11 @@ const createOrUpdateShoppingList = async (userId, ingredients) => {
         shoppingList.ingredients.push(ingredient);
       }
     }
-  }
-
   await shoppingList.save();
-
+  }
+} catch (error) {
+  throw new Error('Error creating/updating shopping list')
+}
   return shoppingList;
 };
 
@@ -40,11 +42,13 @@ const createOrUpdateShoppingList = async (userId, ingredients) => {
 const addRecipeToShoppingList = asyncWrapper(async (req, res) => {
   const { recipeId } = req.params;
   const userId = req.user.userId;
-  let { servingSize = 1 } = req.body;
+  let { servingSize } = req.body;
+  console.log(servingSize);
 
-  if (servingSize <= 0) {
+  if (servingSize === '' || servingSize <= 0) {
     servingSize = 1;
   }
+
   try {
     const recipe = await Recipe.findById(recipeId);
 
@@ -52,8 +56,12 @@ const addRecipeToShoppingList = asyncWrapper(async (req, res) => {
       throw new NotFoundError('Recipe not found');
     }
 
-    const originalServingSize = recipe.recipeServings;
+    let originalServingSize = recipe.recipeServings;
+    if (originalServingSize === '' || originalServingSize <= 0) {
+      originalServingSize = 1;
+    }
     const multiplier = servingSize / originalServingSize;
+    console.log(multiplier, originalServingSize, servingSize);
 
     const { recipeIngredients } = recipe;
 
@@ -69,9 +77,9 @@ const addRecipeToShoppingList = asyncWrapper(async (req, res) => {
       .json({ message: 'Recipe ingredients added to shopping list' });
   } catch (error) {
     console.error('Error adding recipe to shopping list:', error);
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ error: 'An error occurred while adding the recipe to the shopping list' });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: 'An error occurred while adding the recipe to the shopping list',
+    });
   }
 });
 
@@ -149,18 +157,22 @@ const updateIngredientShoppingList = asyncWrapper(async (req, res) => {
 
 // Add an ingredient to the shopping list
 const addIngredientToShoppingList = asyncWrapper(async (req, res) => {
-  const userId = req.user.userId;
+  const { userId } = req.user;
   const { ingredientName, ingredientAmount, ingredientUnit } = req.body;
 
-  // Check if required fields are missing
-  if (!ingredientName || !ingredientAmount || !ingredientUnit) {
-    throw new BadRequestError('Missing required fields in the request.');
+  if(!ingredientName || !ingredientAmount || !ingredientUnit){
+    return res
+    .status(StatusCodes.BAD_REQUEST)
+    .json({ message: 'Missing required fields' });
   }
   try {
-    const shoppingList = await ShoppingList.findOne({ userID: userId });
+    let shoppingList = await ShoppingList.findOne({ userID: userId });
 
     if (!shoppingList) {
-      throw new NotFoundError('Shopping list not found');
+      shoppingList = new ShoppingList({
+        userID: userId,
+        ingredients: [],
+      });
     }
 
     // Check if the ingredient already exists in the shopping list
@@ -170,9 +182,11 @@ const addIngredientToShoppingList = asyncWrapper(async (req, res) => {
 
     if (existingIngredient) {
       // If ingredient exists, suggest updating the amount of existing ingredient
-      res
-        .status(StatusCodes.OK)
-        .json({ message: 'Ingredient already exists in shopping list. Please update the amount.', existingIngredient, });
+      res.status(StatusCodes.OK).json({
+        message:
+          'Ingredient already exists in shopping list. Please update the amount.',
+        existingIngredient,
+      });
       return;
     }
 
@@ -191,9 +205,7 @@ const addIngredientToShoppingList = asyncWrapper(async (req, res) => {
   } catch (error) {
     console.error('Error adding ingredient to shopping list:', error);
     if (error instanceof NotFoundError) {
-      res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ error: error.message });
+      res.status(StatusCodes.NOT_FOUND).json({ error: error.message });
     } else {
       res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
