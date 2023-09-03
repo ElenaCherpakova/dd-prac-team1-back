@@ -7,7 +7,7 @@ const { NotFoundError } = require('../errors');
 const createTransporter = require('../mailerConfig');
 const emailValidation = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-// Create or update shopping list for a recipe
+// During user registration, create or ensure an empty shopping list
 const createOrUpdateShoppingList = async (userId, ingredients) => {
   ingredients = ingredients || [];
 
@@ -80,14 +80,25 @@ const getShoppingList = asyncWrapper(async (req, res) => {
   try {
     const userId = req.user.userId;
     const shoppingList = await ShoppingList.findOne({ userID: userId });
-    res.status(StatusCodes.OK).json(shoppingList || { ingredients: [] });
+
+    if (!shoppingList) {
+      // If no shopping list exists, create an empty one
+      const emptyShoppingList = new ShoppingList({ userID: userId, ingredients: [] });
+      await emptyShoppingList.save();
+      return res
+        .status(StatusCodes.OK)
+        .json(emptyShoppingList);
+    }
+
+    res
+      .status(StatusCodes.OK)
+      .json(shoppingList);
   } catch (error) {
     console.error('Error fetching shopping list:', error);
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({
         error: 'An error occurred while fetching the shopping list',
-        ingredients: [],
       });
   }
 });
