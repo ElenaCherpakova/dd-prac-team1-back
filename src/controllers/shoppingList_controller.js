@@ -11,30 +11,30 @@ const emailValidation = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const createOrUpdateShoppingList = async (userId, ingredients) => {
   ingredients = ingredients || [];
   let shoppingList;
-try {
-  shoppingList = await ShoppingList.findOne({ userID: userId });
+  try {
+    shoppingList = await ShoppingList.findOne({ userID: userId });
 
-  if (!shoppingList) {
-    shoppingList = new ShoppingList({ userID: userId, ingredients });
-    await shoppingList.save();
-  } else {
-    // Loop through the ingredients to update or add them
-    for (const ingredient of ingredients) {
-      const existingIngredient = shoppingList.ingredients.find(
-        (item) => item.ingredientName === ingredient.ingredientName
-      );
+    if (!shoppingList) {
+      shoppingList = new ShoppingList({ userID: userId, ingredients });
+      await shoppingList.save();
+    } else {
+      // Loop through the ingredients to update or add them
+      for (const ingredient of ingredients) {
+        const existingIngredient = shoppingList.ingredients.find(
+          (item) => item.ingredientName === ingredient.ingredientName
+        );
 
-      if (existingIngredient) {
-        existingIngredient.ingredientAmount += ingredient.ingredientAmount;
-      } else {
-        shoppingList.ingredients.push(ingredient);
+        if (existingIngredient) {
+          existingIngredient.ingredientAmount += ingredient.ingredientAmount;
+        } else {
+          shoppingList.ingredients.push(ingredient);
+        }
       }
+      await shoppingList.save();
     }
-  await shoppingList.save();
+  } catch (error) {
+    throw new Error('Error creating/updating shopping list');
   }
-} catch (error) {
-  throw new Error('Error creating/updating shopping list')
-}
   return shoppingList;
 };
 
@@ -91,23 +91,22 @@ const getShoppingList = asyncWrapper(async (req, res) => {
 
     if (!shoppingList) {
       // If no shopping list exists, create an empty one
-      const emptyShoppingList = new ShoppingList({ userID: userId, ingredients: [] });
+      const emptyShoppingList = new ShoppingList({
+        userID: userId,
+        ingredients: [],
+      });
       await emptyShoppingList.save();
-      return res
-        .status(StatusCodes.OK)
-        .json(emptyShoppingList);
+      return res.status(StatusCodes.OK).json(emptyShoppingList);
     }
 
-    res
-      .status(StatusCodes.OK)
-      .json(shoppingList);
+    res.status(StatusCodes.OK).json(shoppingList);
   } catch (error) {
     console.error('Error fetching shopping list:', error);
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ error: 'An error occurred while fetching the shopping list'});
-    }
-  });
+      .json({ error: 'An error occurred while fetching the shopping list' });
+  }
+});
 
 // Update an ingredient in the shopping list
 const updateIngredientShoppingList = asyncWrapper(async (req, res) => {
@@ -144,9 +143,7 @@ const updateIngredientShoppingList = asyncWrapper(async (req, res) => {
   } catch (error) {
     console.error('Error updating ingredient in shopping list:', error);
     if (error instanceof NotFoundError) {
-      res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ error: error.message });
+      res.status(StatusCodes.NOT_FOUND).json({ error: error.message });
     } else {
       res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -160,10 +157,10 @@ const addIngredientToShoppingList = asyncWrapper(async (req, res) => {
   const { userId } = req.user;
   const { ingredientName, ingredientAmount, ingredientUnit } = req.body;
 
-  if(!ingredientName || !ingredientAmount || !ingredientUnit){
+  if (!ingredientName || !ingredientAmount || !ingredientUnit) {
     return res
-    .status(StatusCodes.BAD_REQUEST)
-    .json({ message: 'Missing required fields' });
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ message: 'Missing required fields' });
   }
   try {
     let shoppingList = await ShoppingList.findOne({ userID: userId });
@@ -315,11 +312,17 @@ const shareShoppingList = asyncWrapper(async (req, res) => {
     const shoppingList = await ShoppingList.findOne({
       userID: userId,
     });
+
     if (!shoppingList) {
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: 'Shopping list not found' });
     }
+
+    if (shoppingList.ingredients.length === 0)
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: 'Shopping list is empty',
+      });
 
     let emailContainer = `
     <div style="display: table-row; background-color: #f2f2f2;">
@@ -338,16 +341,42 @@ const shareShoppingList = asyncWrapper(async (req, res) => {
 `;
     });
     const transporter = await createTransporter();
-
     const mailOptions = {
       from: process.env.FROM_EMAIL,
       to: recipientEmail,
       subject: `Shopping list sent by ${userEmailAddress}`,
       text: `${userEmailAddress} sent you shopping list.`,
-      html: `<div style="display: flex; flex-direction: column;">
-              ${userEmailAddress}&nbsp; sent you the following shopping list: </div>
-              ${emailContainer}`,
+      html: `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta http-equiv="X-UA-Compatible" content="IE=edge">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Oliver AI planning app - No Reply</title>
+          </head>
+          <body>
+              <table cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; max-width: 800px; margin: 0 auto; border-collapse: collapse;">
+                  <tr>
+                      <td>
+                          <!-- Logo -->
+                          <img src="https://raw.githubusercontent.com/Code-the-Dream-School/dd-prac-team1-front/devops/initial-setup/public/email_logo.png" alt="Oliver AI planning app Logo" style="max-width: 200px; margin-bottom: 20px;">
+                      </td>
+                  </tr>
+                  <tr>
+                      <td>
+                          <p style="font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #333333;">
+                              ${userEmailAddress} sent you the following shopping list:
+                          </p>
+                          ${emailContainer}
+                      </td>
+                  </tr>
+              </table>
+          </body>
+          </html>
+      `,
     };
+
     await transporter.sendMail(mailOptions);
 
     const confirmationMailOptions = {
@@ -356,7 +385,33 @@ const shareShoppingList = asyncWrapper(async (req, res) => {
       subject: `Shopping list received`,
       text: `Your shopping list was sent successfully to ${recipientEmail}`,
       html: `
-          <b>Your shopping list was sent successfully to ${recipientEmail}</b>`,
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta http-equiv="X-UA-Compatible" content="IE=edge">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Oliver AI planning app - No Reply</title>
+          </head>
+          <body>
+              <table cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; max-width: 800px; margin: 0 auto; border-collapse: collapse;">
+                  <tr>
+                      <td>
+                          <!-- Logo -->
+                          <img src="https://raw.githubusercontent.com/Code-the-Dream-School/dd-prac-team1-front/devops/initial-setup/public/email_logo.png" alt="Oliver AI planning app Logo" style="max-width: 200px; margin-bottom: 20px;">
+                      </td>
+                  </tr>
+                  <tr>
+                      <td>
+                          <p style="font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #333333;">
+                              Your shopping list was sent successfully to ${recipientEmail}.
+                          </p>
+                      </td>
+                  </tr>
+              </table>
+          </body>
+          </html>
+      `,
     };
 
     // Send the confirmation message to the user
