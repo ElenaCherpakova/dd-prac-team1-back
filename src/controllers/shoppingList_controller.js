@@ -299,15 +299,15 @@ const shareShoppingList = asyncWrapper(async (req, res) => {
       });
     }
     // Fetch the user's details to get their email.
-    const senderEmail = await User.findOne({ _id: userId });
-
-    if (!senderEmail) {
+    const sender = await User.findOne({ _id: userId });
+    if (!sender) {
       return res.status(StatusCodes.NOT_FOUND).json({
         message: 'User not found',
       });
     }
 
-    const userEmailAddress = senderEmail.email;
+    const userEmailAddress = sender.email;
+    const userNameAddress = sender.username;
 
     // Fetch the user's shopping list.
     const shoppingList = await ShoppingList.findOne({
@@ -326,18 +326,18 @@ const shareShoppingList = asyncWrapper(async (req, res) => {
       });
 
     let emailContainer = `
-    <div style="display: table-row; background-color: #f2f2f2;">
-        <div style="display: table-cell; padding: 10px; border-right: 1px solid #ddd; font-weight: bold;">Ingredient Name</div>
-        <div style="display: table-cell; padding: 10px; border-right: 1px solid #ddd; font-weight: bold;">Amount</div>
-        <div style="display: table-cell; padding: 10px; font-weight: bold;">Unit</div>
+    <div style="display: table-row; background-color: #f2f2f2; font-size: 16px; border-bottom:1px solid #ddd;">
+        <div style="display: table-cell; width: 300px; padding: 10px; border-right: 1px solid #ddd; font-weight: bold;">Ingredient Name</div>
+        <div style="display: table-cell; width: 300px; padding: 10px; border-right: 1px solid #ddd; font-weight: bold;">Amount</div>
+        <div style="display: table-cell; width: 300px; padding: 10px; font-weight: bold;">Unit</div>
     </div>
 `;
     shoppingList.ingredients.forEach((item) => {
       emailContainer += `
-    <div style="display: table-row; border-bottom: 1px solid #ddd;">
-        <div style="display: table-cell; padding: 10px; border-right: 1px solid #ddd;">${item.ingredientName}</div>
-        <div style="display: table-cell; padding: 10px; border-right: 1px solid #ddd;">${item.ingredientAmount}</div>
-        <div style="display: table-cell; padding: 10px;">${item.ingredientUnit}</div>
+    <div style="display: table-row; border-bottom: 1px solid #ddd; font-size: 16px">
+        <div style="display: table-cell; width: 300px;padding: 10px; border-right: 1px solid #ddd;">${item.ingredientName}</div>
+        <div style="display: table-cell; width: 300px; padding: 10px; border-right: 1px solid #ddd;">${item.ingredientAmount}</div>
+        <div style="display: table-cell; width: 300px; padding: 10px;">${item.ingredientUnit}</div>
     </div>
 `;
     });
@@ -348,6 +348,7 @@ const shareShoppingList = asyncWrapper(async (req, res) => {
       subject: `Shopping list sent by ${userEmailAddress}`,
       text: `${userEmailAddress} sent you shopping list.`,
       html: getHtmlTemplate('emailSentShopList.html', {
+        userNameAddress,
         userEmailAddress,
         recipientEmail,
         emailContainer,
