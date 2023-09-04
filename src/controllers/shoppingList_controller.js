@@ -6,7 +6,8 @@ const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, NotFoundError } = require('../errors');
 const createTransporter = require('../mailerConfig');
 const emailValidation = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
+const getHtmlTemplate = require('../helpers/getHtmlTemplate');
+const { get } = require('mongoose');
 // During user registration, create or ensure an empty shopping list
 const createOrUpdateShoppingList = async (userId, ingredients) => {
   ingredients = ingredients || [];
@@ -346,35 +347,11 @@ const shareShoppingList = asyncWrapper(async (req, res) => {
       to: recipientEmail,
       subject: `Shopping list sent by ${userEmailAddress}`,
       text: `${userEmailAddress} sent you shopping list.`,
-      html: `
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <meta http-equiv="X-UA-Compatible" content="IE=edge">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Oliver AI planning app - No Reply</title>
-          </head>
-          <body>
-              <table cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; max-width: 800px; margin: 0 auto; border-collapse: collapse;">
-                  <tr>
-                      <td>
-                          <!-- Logo -->
-                          <img src="https://raw.githubusercontent.com/Code-the-Dream-School/dd-prac-team1-front/devops/initial-setup/public/email_logo.png" alt="Oliver AI planning app Logo" style="max-width: 200px; margin-bottom: 20px;">
-                      </td>
-                  </tr>
-                  <tr>
-                      <td>
-                          <p style="font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #333333;">
-                              ${userEmailAddress} sent you the following shopping list:
-                          </p>
-                          ${emailContainer}
-                      </td>
-                  </tr>
-              </table>
-          </body>
-          </html>
-      `,
+      html: getHtmlTemplate('emailSentShopList.html', {
+        userEmailAddress,
+        recipientEmail,
+        emailContainer,
+      }),
     };
 
     await transporter.sendMail(mailOptions);
@@ -384,34 +361,10 @@ const shareShoppingList = asyncWrapper(async (req, res) => {
       to: userEmailAddress,
       subject: `Shopping list received`,
       text: `Your shopping list was sent successfully to ${recipientEmail}`,
-      html: `
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <meta http-equiv="X-UA-Compatible" content="IE=edge">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Oliver AI planning app - No Reply</title>
-          </head>
-          <body>
-              <table cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; max-width: 800px; margin: 0 auto; border-collapse: collapse;">
-                  <tr>
-                      <td>
-                          <!-- Logo -->
-                          <img src="https://raw.githubusercontent.com/Code-the-Dream-School/dd-prac-team1-front/devops/initial-setup/public/email_logo.png" alt="Oliver AI planning app Logo" style="max-width: 200px; margin-bottom: 20px;">
-                      </td>
-                  </tr>
-                  <tr>
-                      <td>
-                          <p style="font-family: Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #333333;">
-                              Your shopping list was sent successfully to ${recipientEmail}.
-                          </p>
-                      </td>
-                  </tr>
-              </table>
-          </body>
-          </html>
-      `,
+      html: getHtmlTemplate('emailConfirmSentShopList.html', {
+        userEmailAddress,
+        recipientEmail,
+      }),
     };
 
     // Send the confirmation message to the user
