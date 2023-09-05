@@ -3,38 +3,38 @@ const Recipe = require('../models/Recipe');
 const ShoppingList = require('../models/ShoppingList');
 const User = require('../models/User');
 const { StatusCodes } = require('http-status-codes');
-const { BadRequestError, NotFoundError } = require('../errors');
+const { NotFoundError } = require('../errors');
 const createTransporter = require('../mailerConfig');
 const emailValidation = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
+const getHtmlTemplate = require('../helpers/getHtmlTemplate');
 // During user registration, create or ensure an empty shopping list
 const createOrUpdateShoppingList = async (userId, ingredients) => {
   ingredients = ingredients || [];
   let shoppingList;
-try {
-  shoppingList = await ShoppingList.findOne({ userID: userId });
+  try {
+    shoppingList = await ShoppingList.findOne({ userID: userId });
 
-  if (!shoppingList) {
-    shoppingList = new ShoppingList({ userID: userId, ingredients });
-    await shoppingList.save();
-  } else {
-    // Loop through the ingredients to update or add them
-    for (const ingredient of ingredients) {
-      const existingIngredient = shoppingList.ingredients.find(
-        (item) => item.ingredientName === ingredient.ingredientName
-      );
+    if (!shoppingList) {
+      shoppingList = new ShoppingList({ userID: userId, ingredients });
+      await shoppingList.save();
+    } else {
+      // Loop through the ingredients to update or add them
+      for (const ingredient of ingredients) {
+        const existingIngredient = shoppingList.ingredients.find(
+          (item) => item.ingredientName === ingredient.ingredientName
+        );
 
-      if (existingIngredient) {
-        existingIngredient.ingredientAmount += ingredient.ingredientAmount;
-      } else {
-        shoppingList.ingredients.push(ingredient);
+        if (existingIngredient) {
+          existingIngredient.ingredientAmount += ingredient.ingredientAmount;
+        } else {
+          shoppingList.ingredients.push(ingredient);
+        }
       }
+      await shoppingList.save();
     }
-  await shoppingList.save();
+  } catch (error) {
+    throw new Error('Error creating/updating shopping list');
   }
-} catch (error) {
-  throw new Error('Error creating/updating shopping list')
-}
   return shoppingList;
 };
 
@@ -91,23 +91,22 @@ const getShoppingList = asyncWrapper(async (req, res) => {
 
     if (!shoppingList) {
       // If no shopping list exists, create an empty one
-      const emptyShoppingList = new ShoppingList({ userID: userId, ingredients: [] });
+      const emptyShoppingList = new ShoppingList({
+        userID: userId,
+        ingredients: [],
+      });
       await emptyShoppingList.save();
-      return res
-        .status(StatusCodes.OK)
-        .json(emptyShoppingList);
+      return res.status(StatusCodes.OK).json(emptyShoppingList);
     }
 
-    res
-      .status(StatusCodes.OK)
-      .json(shoppingList);
+    res.status(StatusCodes.OK).json(shoppingList);
   } catch (error) {
     console.error('Error fetching shopping list:', error);
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ error: 'An error occurred while fetching the shopping list'});
-    }
-  });
+      .json({ error: 'An error occurred while fetching the shopping list' });
+  }
+});
 
 // Update an ingredient in the shopping list
 const updateIngredientShoppingList = asyncWrapper(async (req, res) => {
@@ -144,9 +143,7 @@ const updateIngredientShoppingList = asyncWrapper(async (req, res) => {
   } catch (error) {
     console.error('Error updating ingredient in shopping list:', error);
     if (error instanceof NotFoundError) {
-      res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ error: error.message });
+      res.status(StatusCodes.NOT_FOUND).json({ error: error.message });
     } else {
       res
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -160,10 +157,10 @@ const addIngredientToShoppingList = asyncWrapper(async (req, res) => {
   const { userId } = req.user;
   const { ingredientName, ingredientAmount, ingredientUnit } = req.body;
 
-  if(!ingredientName || !ingredientAmount || !ingredientUnit){
+  if (!ingredientName || !ingredientAmount || !ingredientUnit) {
     return res
-    .status(StatusCodes.BAD_REQUEST)
-    .json({ message: 'Missing required fields' });
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ message: 'Missing required fields' });
   }
   try {
     let shoppingList = await ShoppingList.findOne({ userID: userId });
@@ -301,53 +298,62 @@ const shareShoppingList = asyncWrapper(async (req, res) => {
       });
     }
     // Fetch the user's details to get their email.
-    const senderEmail = await User.findOne({ _id: userId });
-
-    if (!senderEmail) {
+    const sender = await User.findOne({ _id: userId });
+    if (!sender) {
       return res.status(StatusCodes.NOT_FOUND).json({
         message: 'User not found',
       });
     }
 
-    const userEmailAddress = senderEmail.email;
+    const userEmailAddress = sender.email;
+    const userNameAddress = sender.username;
 
     // Fetch the user's shopping list.
     const shoppingList = await ShoppingList.findOne({
       userID: userId,
     });
+
     if (!shoppingList) {
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: 'Shopping list not found' });
     }
 
+    if (shoppingList.ingredients.length === 0)
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: 'Shopping list is empty',
+      });
+
     let emailContainer = `
-    <div style="display: table-row; background-color: #f2f2f2;">
-        <div style="display: table-cell; padding: 10px; border-right: 1px solid #ddd; font-weight: bold;">Ingredient Name</div>
-        <div style="display: table-cell; padding: 10px; border-right: 1px solid #ddd; font-weight: bold;">Amount</div>
-        <div style="display: table-cell; padding: 10px; font-weight: bold;">Unit</div>
+    <div style="display: table-row; background-color: #f2f2f2; font-size: 16px; border-bottom:1px solid #ddd;">
+        <div style="display: table-cell; width: 300px; padding: 10px; border-right: 1px solid #ddd; font-weight: bold;">Ingredient Name</div>
+        <div style="display: table-cell; width: 300px; padding: 10px; border-right: 1px solid #ddd; font-weight: bold;">Amount</div>
+        <div style="display: table-cell; width: 300px; padding: 10px; font-weight: bold;">Unit</div>
     </div>
 `;
     shoppingList.ingredients.forEach((item) => {
       emailContainer += `
-    <div style="display: table-row; border-bottom: 1px solid #ddd;">
-        <div style="display: table-cell; padding: 10px; border-right: 1px solid #ddd;">${item.ingredientName}</div>
-        <div style="display: table-cell; padding: 10px; border-right: 1px solid #ddd;">${item.ingredientAmount}</div>
-        <div style="display: table-cell; padding: 10px;">${item.ingredientUnit}</div>
+    <div style="display: table-row; border-bottom: 1px solid #ddd; font-size: 16px">
+        <div style="display: table-cell; width: 300px;padding: 10px; border-right: 1px solid #ddd;">${item.ingredientName}</div>
+        <div style="display: table-cell; width: 300px; padding: 10px; border-right: 1px solid #ddd;">${item.ingredientAmount}</div>
+        <div style="display: table-cell; width: 300px; padding: 10px;">${item.ingredientUnit}</div>
     </div>
 `;
     });
     const transporter = await createTransporter();
-
     const mailOptions = {
       from: process.env.FROM_EMAIL,
       to: recipientEmail,
       subject: `Shopping list sent by ${userEmailAddress}`,
       text: `${userEmailAddress} sent you shopping list.`,
-      html: `<div style="display: flex; flex-direction: column;">
-              ${userEmailAddress}&nbsp; sent you the following shopping list: </div>
-              ${emailContainer}`,
+      html: getHtmlTemplate('emailSentShopList.html', {
+        userNameAddress,
+        userEmailAddress,
+        recipientEmail,
+        emailContainer,
+      }),
     };
+
     await transporter.sendMail(mailOptions);
 
     const confirmationMailOptions = {
@@ -355,8 +361,10 @@ const shareShoppingList = asyncWrapper(async (req, res) => {
       to: userEmailAddress,
       subject: `Shopping list received`,
       text: `Your shopping list was sent successfully to ${recipientEmail}`,
-      html: `
-          <b>Your shopping list was sent successfully to ${recipientEmail}</b>`,
+      html: getHtmlTemplate('emailConfirmSentShopList.html', {
+        userEmailAddress,
+        recipientEmail,
+      }),
     };
 
     // Send the confirmation message to the user

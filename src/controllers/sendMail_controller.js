@@ -1,7 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const asyncWrapper = require('../middleware/async');
 const createTransporter = require('../mailerConfig');
-
+const getHtmlTemplate = require('../helpers/getHtmlTemplate');
 const sendMail = asyncWrapper(async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -17,22 +17,23 @@ const sendMail = asyncWrapper(async (req, res) => {
       to: process.env.FROM_EMAIL,
       subject: `Message from ${name}`,
       text: message,
-      html: `
-            <h2>New Message from ${name}</h2>
-            <p><strong>Email To Reply:</strong> ${email}</p>
-            <p><strong>Message:</strong> ${message}</p>
-    `,
+      html: getHtmlTemplate('contactUsSent.html', {
+        name,
+        email,
+        message,
+      }),
     };
     await transporter.sendMail(mailOptions);
-    const confirmationMsg = `Thank you for reaching out! We've received your msg and will respond ASAP.`;
 
     const confirmationMailOptions = {
       from: process.env.FROM_EMAIL,
       to: email,
       subject: `Message received`,
-      text: confirmationMsg,
-      html: `
-            <b>${confirmationMsg}</b>`,
+      text: `Message received`,
+      html: getHtmlTemplate('contactUsConfirmSent.html', {
+        name,
+        email,
+      }),
     };
     // Send the confirmation message to the user
     await transporter.sendMail(confirmationMailOptions);
