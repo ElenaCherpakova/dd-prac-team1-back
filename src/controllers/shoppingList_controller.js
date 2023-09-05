@@ -3,11 +3,10 @@ const Recipe = require('../models/Recipe');
 const ShoppingList = require('../models/ShoppingList');
 const User = require('../models/User');
 const { StatusCodes } = require('http-status-codes');
-const { BadRequestError, NotFoundError } = require('../errors');
+const { NotFoundError } = require('../errors');
 const createTransporter = require('../mailerConfig');
 const emailValidation = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const getHtmlTemplate = require('../helpers/getHtmlTemplate');
-const { get } = require('mongoose');
 // During user registration, create or ensure an empty shopping list
 const createOrUpdateShoppingList = async (userId, ingredients) => {
   ingredients = ingredients || [];
