@@ -85,6 +85,7 @@ const forgotPassword = async (req, res) => {
     // Generate reset token and expiration
     const resetToken = user.createResetPasswordToken();
     user.passwordResetToken = resetToken;
+    await user.save();
 
     const resetLink = `${URL_TO_RESET}${resetToken}`;
 
@@ -104,7 +105,7 @@ const forgotPassword = async (req, res) => {
       .status(StatusCodes.OK)
       .json({ message: 'Email sent successfully' });
   } catch (error) {
-    res
+    return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: 'Error sending email', error: error.message });
   }
@@ -120,23 +121,32 @@ const resetPassword = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (!decoded) {
-      throw new UnauthenticatedError('Invalid token');
-    }
     const user = await User.findOne({ _id: decoded.userId });
-    if (!user) {
+
+    if (!user || user.passwordResetToken !== token) {
       throw new UnauthenticatedError('Invalid token');
     }
 
     user.password = newPassword;
+    user.passwordResetToken = null;
+
     await user.save();
+
     return res
       .status(StatusCodes.OK)
       .json({ message: 'Password reset successfully' });
   } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: 'Error resetting password', error: error.message });
+    // Handle JWT-related errors
+    if (error.name === 'TokenExpiredError') {
+      throw new UnauthenticatedError('Reset token has expired');
+    } else if (error.name === 'JsonWebTokenError') {
+      throw new UnauthenticatedError('Invalid token');
+    } else {
+      // Directly handle generic errors without throwing for simplicity
+      return res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: 'Error resetting password' });
+    }
   }
 };
 
