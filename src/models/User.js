@@ -26,6 +26,10 @@ const UserSchema = new mongoose.Schema({
       message: 'Password should be at least 8 characters long',
     },
   },
+  passwordResetToken: {
+    type: String,
+    default: null,
+  },
 });
 
 UserSchema.pre('save', async function () {
@@ -38,6 +42,19 @@ UserSchema.methods.createJWT = function () {
     { userId: this._id, email: this.email },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_LIFETIME }
+  );
+};
+
+UserSchema.methods.createResetPasswordToken = function () {
+  return jwt.sign(
+    {
+      userId: this._id,
+      timestamp: new Date().getTime(),
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_RESET_PASSWORD_EXPIRES_IN,
+    }
   );
 };
 
