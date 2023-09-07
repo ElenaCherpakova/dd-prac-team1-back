@@ -5,7 +5,7 @@ const { BadRequestError, UnauthenticatedError } = require('../errors');
 const jwt = require('jsonwebtoken');
 const createTransporter = require('../mailerConfig');
 const getHtmlTemplate = require('../helpers/getHtmlTemplate');
-const URL_TO_RESET = 'https://localhost:3005/reset-password/';
+const URL_TO_RESET = 'http://localhost:3005/reset-password/';
 
 const register = async (req, res) => {
   const { username, email, password } = req.body;
