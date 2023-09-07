@@ -16,7 +16,7 @@ const session_params = {
   saveUninitialized: true,
   store: store,
   cookie: {
-    secure: true,
+    secure: false,
     sameSite: 'strict',
   },
 };

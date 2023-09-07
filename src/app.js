@@ -51,7 +51,7 @@ app.use(
 app.use(helmet());
 app.use(
   cors({
-    origin: 'https://localhost:3005',
+    origin: 'http://localhost:3005',
     // credentials: true,
   })
 );
