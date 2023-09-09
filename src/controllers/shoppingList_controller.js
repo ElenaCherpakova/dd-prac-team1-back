@@ -6,35 +6,36 @@ const { StatusCodes } = require('http-status-codes');
 const { BadRequestError, NotFoundError } = require('../errors');
 const createTransporter = require('../mailerConfig');
 const emailValidation = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const { transformIngredients } = require('../helpers/transformIngredientData');
 
 // During user registration, create or ensure an empty shopping list
 const createOrUpdateShoppingList = async (userId, ingredients) => {
   ingredients = ingredients || [];
   let shoppingList;
-try {
-  shoppingList = await ShoppingList.findOne({ userID: userId });
+  try {
+    shoppingList = await ShoppingList.findOne({ userID: userId });
 
-  if (!shoppingList) {
-    shoppingList = new ShoppingList({ userID: userId, ingredients });
-    await shoppingList.save();
-  } else {
-    // Loop through the ingredients to update or add them
-    for (const ingredient of ingredients) {
-      const existingIngredient = shoppingList.ingredients.find(
-        (item) => item.ingredientName === ingredient.ingredientName
-      );
+    if (!shoppingList) {
+      shoppingList = new ShoppingList({ userID: userId, ingredients });
+      await shoppingList.save();
+    } else {
+      // Loop through the ingredients to update or add them
+      for (const ingredient of ingredients) {
+        const existingIngredient = shoppingList.ingredients.find(
+          (item) => item.ingredientName === ingredient.ingredientName
+        );
 
-      if (existingIngredient) {
-        existingIngredient.ingredientAmount += ingredient.ingredientAmount;
-      } else {
-        shoppingList.ingredients.push(ingredient);
+        if (existingIngredient) {
+          existingIngredient.ingredientAmount += ingredient.ingredientAmount;
+        } else {
+          shoppingList.ingredients.push(ingredient);
+        }
       }
+      await shoppingList.save();
     }
-  await shoppingList.save();
+  } catch (error) {
+    throw new Error('Error creating/updating shopping list');
   }
-} catch (error) {
-  throw new Error('Error creating/updating shopping list')
-}
   return shoppingList;
 };
 
@@ -43,7 +44,6 @@ const addRecipeToShoppingList = asyncWrapper(async (req, res) => {
   const { recipeId } = req.params;
   const userId = req.user.userId;
   let { servingSize } = req.body;
-  console.log(servingSize);
 
   if (servingSize === '' || servingSize <= 0) {
     servingSize = 1;
@@ -56,22 +56,21 @@ const addRecipeToShoppingList = asyncWrapper(async (req, res) => {
       throw new NotFoundError('Recipe not found');
     }
 
-    let originalServingSize = recipe.recipeServings;
-    if (originalServingSize === '' || originalServingSize <= 0) {
-      originalServingSize = 1;
-    }
+    // Calculate the serving size multiplier
+    const originalServingSize = recipe.recipeServings || 1; // Default to 1 if not provided
     const multiplier = servingSize / originalServingSize;
-    console.log(multiplier, originalServingSize, servingSize);
 
     const { recipeIngredients } = recipe;
 
-    const adjustIngredients = recipeIngredients.map((ingredient) => ({
-      ingredientName: ingredient.ingredientName,
-      ingredientAmount: ingredient.ingredientAmount * multiplier,
-      ingredientUnit: ingredient.ingredientUnit,
-    }));
+    // Call the function to transform ingredients
+    const adjustIngredients = transformIngredients(
+      recipeIngredients,
+      multiplier
+    );
 
+    // Create or update the shopping list
     await createOrUpdateShoppingList(userId, adjustIngredients);
+
     res
       .status(StatusCodes.CREATED)
       .json({ message: 'Recipe ingredients added to shopping list' });
@@ -97,10 +96,11 @@ const getShoppingList = asyncWrapper(async (req, res) => {
         .status(StatusCodes.OK)
         .json(emptyShoppingList);
     }
-
+    
     res
       .status(StatusCodes.OK)
       .json(shoppingList);
+    
   } catch (error) {
     console.error('Error fetching shopping list:', error);
     res
@@ -281,7 +281,7 @@ const deleteShoppingList = asyncWrapper(async (req, res) => {
         .status(StatusCodes.INTERNAL_SERVER_ERROR)
         .json({ error: 'An error occurred while deleting the shopping list' });
     }
-  }
+  };
 });
 
 const shareShoppingList = asyncWrapper(async (req, res) => {
@@ -381,4 +381,4 @@ module.exports = {
   deleteIngredientShoppingList,
   deleteShoppingList,
   shareShoppingList,
-};
+}
