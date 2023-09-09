@@ -69,12 +69,10 @@ const transformRecipeData = (openAIOutput) => {
   };
 
   const recipeIngredients = ingredients.map((ingredient) => {
-   
     const [quantityValue] =
       ingredient.quantity.match(
         /^[\d\s\/]+|to taste|for serving|for garnish|to serve|to garnish/
       ) || [];
-
     return {
       ingredientName: ingredient.name,
       ingredientAmount: convertIngredientAmountIntoInteger(quantityValue.split('')[0]),
