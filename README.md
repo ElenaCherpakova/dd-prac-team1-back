@@ -128,3 +128,19 @@ User is required to be authenticated.The recipe's ingredients added to the shopp
 Duplicate ingredients from multiple recipes will be summed up in the shopping list.
 Ingredient Identification: Each ingredient in the shopping list is uniquely identified by its name. Users can click the "Delete" button next to a specific ingredient to remove it or the user can delete the entire shopping list.
 
+# Shopping List with Ingredient Base Unit "g"
+This application allows users to create and manage a shopping list with ingredients represented in grams ("g") as the base unit. When users add recipes to their shopping list, the application automatically adjusts the quantities and units of ingredients to ensure consistency and ease of use. This ensures that users have a clear and uniform shopping list that simplifies the shopping process.
+
+1. Unit Conversion: For each ingredient in the recipe, the application converts the quantity to grams ("g"). 
+This conversion process handles various units such as ounces ("oz"), pounds ("lbs"), and more.
+
+2. Consistent Representation: Ingredients are represented consistently in grams to avoid confusion during shopping. 
+Quantities are rounded to the nearest gram for simplicity.
+
+3. Special Handling: Some ingredients, like cloves, pinch or medium items, are excluded from conversion to maintain their original quantity, ensuring accurate representation.
+
+4. As Desired: For ingredients with the unit "other" and negative quantities, they are represented as "as desired," allowing users to customize the amount.
+
+5. 
+
+6. 
