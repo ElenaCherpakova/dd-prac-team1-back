@@ -6,6 +6,7 @@ Welcome to Olivier's backend repository for the Node/React Practicum. Dive in to
 
 - [Introduction](#introduction)
   - [Running the project](#running-the-project)
+- [Screenshots](#screenshots)
 - [User Authentication & Management](#user-authentication--management)
   - [User Authentication](#user-authentication)
   - [Endpoints](#endpoints)
@@ -81,6 +82,13 @@ REFRESH_TOKEN=<your_refresh_token>
 7. The app will be served at <http://localhost:3000/>.
 8. Your back-end server is now running. You can now run the front-end app.
 
+## Screenshots
+
+![Fetching Recipe Using AI]()
+![Manual Adding Recipe]()
+![Search Recipe by categories, tags and using search bar. Edit Recipe]()
+![Planner]()
+![Shopping]()
 ## User Authentication & Management
 
 ### User Authentication
