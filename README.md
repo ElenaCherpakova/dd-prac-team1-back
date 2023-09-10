@@ -83,14 +83,21 @@ REFRESH_TOKEN=<your_refresh_token>
 8. Your back-end server is now running. You can now run the front-end app.
 
 ## Screenshots
+#### AI Recipe Retrieval
+![AI Recipe Retrieval](public/images/gif_1.gif) 
 
-![Fetching Recipe Using AI]()
-![Manual Adding Recipe]()
-![Search Recipe by categories, tags and using search bar. Edit Recipe]()
-![Planner]()
-![Shopping]()
+#### Manually Add a Recipe
+![Manually Add a Recipe](public/images/gif_2.gif)
+
+#### Search recipes by category, tag, or keyword. Edit recipe details.
+![Search Recipe by categories, tags and using search bar. Edit Recipe](public/images/gif_3.gif)
+
+#### Meal Planner
+![Meal Planner](public/images/gif_4.gif)
+
+#### Shopping List
+![Shopping List](public/images/gif_5.gif)
 ## User Authentication & Management
-
 ### User Authentication
 
 Managing user sessions and ensuring security is paramount. The process involves:
