@@ -1,7 +1,5 @@
 // Function to convert an ingredient amount to grams
 const convertToGrams = (ingredientAmount, ingredientUnit) => {
-  console.log(`Converting ${ingredientAmount} ${ingredientUnit} to grams`);
-
   // Conversion logic
   let result;
 
@@ -35,10 +33,6 @@ const convertToGrams = (ingredientAmount, ingredientUnit) => {
       console.error(`Unrecognized unit: ${ingredientUnit}`);
       result = null;
   }
-
-  // Log the result before returning
-  console.log(`Result: ${result} grams`);
-
   return result;
 };
 
