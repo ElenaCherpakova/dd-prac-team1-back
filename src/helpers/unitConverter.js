@@ -21,6 +21,9 @@ const convertToGrams = (ingredientAmount, ingredientUnit) => {
     case 'cup':
       result = ingredientAmount * 128; // Assuming 1 cup is 128 grams
       break;
+    case 'cups':
+      result = ingredientAmount * 128; // Assuming 1 cup is 128 grams
+      break;
     case 'tbsp':
       result = ingredientAmount * 14.7868; // Assuming 1 tbsp is 14.7868 grams
       break;
