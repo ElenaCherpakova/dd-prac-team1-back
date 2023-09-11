@@ -13,6 +13,7 @@ const { transformIngredients } = require('../helpers/transformIngredientData');
 const createOrUpdateShoppingList = async (userId, ingredients) => {
   ingredients = ingredients || [];
   let shoppingList;
+
   try {
     shoppingList = await ShoppingList.findOne({ userID: userId });
 
@@ -35,7 +36,8 @@ const createOrUpdateShoppingList = async (userId, ingredients) => {
       await shoppingList.save();
     }
   } catch (error) {
-    throw new Error('Error creating/updating shopping list');
+    console.error('Error creating/updating shopping list:', error);
+    throw new Error('Error creating/updating shopping list'); // Rethrow the error
   }
   return shoppingList;
 };
