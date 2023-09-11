@@ -6,7 +6,6 @@ const connectDB = require('../db/connect');
 const start = async () => {
   try {
     await connectDB(process.env.MONGO_URI);
-    // console.log('DB connection established');
     app.listen(PORT, console.log(`Listening on Port ${PORT}...`));
   } catch (error) {
     console.log(error);

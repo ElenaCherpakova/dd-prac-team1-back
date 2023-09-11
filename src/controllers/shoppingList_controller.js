@@ -1,33 +1,44 @@
 const asyncWrapper = require('../middleware/async');
 const Recipe = require('../models/Recipe');
 const ShoppingList = require('../models/ShoppingList');
-const { BadRequestError, NotFoundError } = require('../errors');
+const User = require('../models/User');
+const { StatusCodes } = require('http-status-codes');
+const { NotFoundError } = require('../errors');
+const createTransporter = require('../mailerConfig');
+const emailValidation = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const getHtmlTemplate = require('../helpers/getHtmlTemplate');
+const { transformIngredients } = require('../helpers/transformIngredientData');
 
-// Create or update shopping list for a recipe
+// During user registration, create or ensure an empty shopping list
 const createOrUpdateShoppingList = async (userId, ingredients) => {
   ingredients = ingredients || [];
+  let shoppingList;
 
-  let shoppingList = await ShoppingList.findOne({ userID: userId });
+  try {
+    shoppingList = await ShoppingList.findOne({ userID: userId });
 
-  if (!shoppingList) {
-    shoppingList = new ShoppingList({ userID: userId, ingredients });
-    await shoppingList.save();
-  } else {
-    // Loop through the ingredients to update or add them
-    for (const ingredient of ingredients) {
-      const existingIngredient = shoppingList.ingredients.find(
-        (item) => item.ingredientName === ingredient.ingredientName
-      );
+    if (!shoppingList) {
+      shoppingList = new ShoppingList({ userID: userId, ingredients });
+      await shoppingList.save();
+    } else {
+      // Loop through the ingredients to update or add them
+      for (const ingredient of ingredients) {
+        const existingIngredient = shoppingList.ingredients.find(
+          (item) => item.ingredientName === ingredient.ingredientName
+        );
 
-      if (existingIngredient) {
-        existingIngredient.ingredientAmount += ingredient.ingredientAmount;
-      } else {
-        shoppingList.ingredients.push(ingredient);
+        if (existingIngredient) {
+          existingIngredient.ingredientAmount += ingredient.ingredientAmount;
+        } else {
+          shoppingList.ingredients.push(ingredient);
+        }
       }
+      await shoppingList.save();
     }
-    await shoppingList.save();
+  } catch (error) {
+    console.error('Error creating/updating shopping list:', error);
+    throw new Error('Error creating/updating shopping list'); // Rethrow the error
   }
-
   return shoppingList;
 };
 
@@ -35,18 +46,43 @@ const createOrUpdateShoppingList = async (userId, ingredients) => {
 const addRecipeToShoppingList = asyncWrapper(async (req, res) => {
   const { recipeId } = req.params;
   const userId = req.user.userId;
+  let { servingSize } = req.body;
 
-  const recipe = await Recipe.findById(recipeId);
-
-  if (!recipe) {
-    throw new NotFoundError('Recipe not found');
+  if (servingSize === '' || servingSize <= 0) {
+    servingSize = 1;
   }
 
-  const { recipeIngredients } = recipe;
+  try {
+    const recipe = await Recipe.findById(recipeId);
 
-  await createOrUpdateShoppingList(userId, recipeIngredients);
+    if (!recipe) {
+      throw new NotFoundError('Recipe not found');
+    }
 
-  res.status(201).json({ message: 'Recipe ingredients added to shopping list' });
+    // Calculate the serving size multiplier
+    const originalServingSize = recipe.recipeServings || 1; // Default to 1 if not provided
+    const multiplier = servingSize / originalServingSize;
+
+    const { recipeIngredients } = recipe;
+
+    // Call the function to transform ingredients
+    const adjustIngredients = transformIngredients(
+      recipeIngredients,
+      multiplier
+    );
+
+    // Create or update the shopping list
+    await createOrUpdateShoppingList(userId, adjustIngredients);
+
+    res
+      .status(StatusCodes.CREATED)
+      .json({ message: 'Recipe ingredients added to shopping list' });
+  } catch (error) {
+    console.error('Error adding recipe to shopping list:', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: 'An error occurred while adding the recipe to the shopping list',
+    });
+  }
 });
 
 // Get shopping list for a user
@@ -56,13 +92,124 @@ const getShoppingList = asyncWrapper(async (req, res) => {
     const shoppingList = await ShoppingList.findOne({ userID: userId });
 
     if (!shoppingList) {
+      // If no shopping list exists, create an empty one
+      const emptyShoppingList = new ShoppingList({
+        userID: userId,
+        ingredients: [],
+      });
+      await emptyShoppingList.save();
+      return res.status(StatusCodes.OK).json(emptyShoppingList);
+    }
+
+    res.status(StatusCodes.OK).json(shoppingList);
+  } catch (error) {
+    console.error('Error fetching shopping list:', error);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: 'An error occurred while fetching the shopping list' });
+  }
+});
+
+// Update an ingredient in the shopping list
+const updateIngredientShoppingList = asyncWrapper(async (req, res) => {
+  // Decode the URL-encoded ingredient name
+  const decodedIngredientName = decodeURIComponent(req.params.ingredientName);
+  const userId = req.user.userId;
+  const { ingredientAmount } = req.body;
+
+  try {
+    const shoppingList = await ShoppingList.findOne({ userID: userId });
+
+    if (!shoppingList) {
       throw new NotFoundError('Shopping list not found');
     }
 
-    res.status(200).json(shoppingList);
+    // Find the index of the ingredient to be updated
+    const ingredientIndex = shoppingList.ingredients.findIndex(
+      (item) => item.ingredientName === decodedIngredientName
+    );
+
+    if (ingredientIndex === -1) {
+      throw new NotFoundError('Ingredient not found in shopping list');
+    }
+
+    // Update the ingredient properties
+    shoppingList.ingredients[ingredientIndex].ingredientAmount =
+      ingredientAmount;
+
+    await shoppingList.save();
+
+    res
+      .status(StatusCodes.OK)
+      .json({ message: 'Ingredient updated in shopping list' });
   } catch (error) {
-    console.error('Error fetching shopping list:', error);
-    res.status(500).json({ error: 'An error occurred while fetching the shopping list' });
+    console.error('Error updating ingredient in shopping list:', error);
+    if (error instanceof NotFoundError) {
+      res.status(StatusCodes.NOT_FOUND).json({ error: error.message });
+    } else {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ error: 'An error occurred while updating the ingredient' });
+    }
+  }
+});
+
+// Add an ingredient to the shopping list
+const addIngredientToShoppingList = asyncWrapper(async (req, res) => {
+  const { userId } = req.user;
+  const { ingredientName, ingredientAmount, ingredientUnit } = req.body;
+
+  if (!ingredientName || !ingredientAmount || !ingredientUnit) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ message: 'Missing required fields' });
+  }
+  try {
+    let shoppingList = await ShoppingList.findOne({ userID: userId });
+
+    if (!shoppingList) {
+      shoppingList = new ShoppingList({
+        userID: userId,
+        ingredients: [],
+      });
+    }
+
+    // Check if the ingredient already exists in the shopping list
+    const existingIngredient = shoppingList.ingredients.find(
+      (item) => item.ingredientName === ingredientName
+    );
+
+    if (existingIngredient) {
+      // If ingredient exists, suggest updating the amount of existing ingredient
+      res.status(StatusCodes.OK).json({
+        message:
+          'Ingredient already exists in shopping list. Please update the amount.',
+        existingIngredient,
+      });
+      return;
+    }
+
+    // Add the new ingredient to the shopping list
+    shoppingList.ingredients.unshift({
+      ingredientName,
+      ingredientAmount,
+      ingredientUnit,
+    });
+
+    await shoppingList.save();
+
+    res
+      .status(StatusCodes.OK)
+      .json({ message: 'Ingredient added to shopping list' });
+  } catch (error) {
+    console.error('Error adding ingredient to shopping list:', error);
+    if (error instanceof NotFoundError) {
+      res.status(StatusCodes.NOT_FOUND).json({ error: error.message });
+    } else {
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ error: 'An error occurred while adding the ingredient' });
+    }
   }
 });
 
@@ -93,13 +240,17 @@ const deleteIngredientShoppingList = asyncWrapper(async (req, res) => {
 
     await shoppingList.save();
 
-    res.status(200).json({ message: 'Ingredient deleted from shopping list' });
+    res
+      .status(StatusCodes.OK)
+      .json({ message: 'Ingredient deleted from shopping list' });
   } catch (error) {
     console.error('Error deleting ingredient from shopping list:', error);
     if (error instanceof NotFoundError) {
-      res.status(404).json({ error: error.message });
+      res.status(StatusCodes.NOT_FOUND).json({ error: error.message });
     } else {
-      res.status(500).json({ error: 'An error occurred while deleting the ingredient' });
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ error: 'An error occurred while deleting the ingredient' });
     }
   }
 });
@@ -109,69 +260,134 @@ const deleteShoppingList = asyncWrapper(async (req, res) => {
   const userId = req.user.userId;
 
   try {
-    const shoppingList = await ShoppingList.findOneAndDelete({ userID: userId });
+    const shoppingList = await ShoppingList.findOneAndDelete({
+      userID: userId,
+    });
 
     if (!shoppingList) {
       throw new NotFoundError('Shopping list not found');
     }
 
-    res.status(200).json({ message: 'Shopping list deleted successfully' });
+    res
+      .status(StatusCodes.OK)
+      .json({ message: 'Shopping list deleted successfully' });
   } catch (error) {
     console.error('Error deleting shopping list:', error);
     if (error instanceof NotFoundError) {
-      res.status(404).json({ error: error.message });
+      res.status(StatusCodes.NOT_FOUND).json({ error: error.message });
     } else {
-      res.status(500).json({ error: 'An error occurred while deleting the shopping list' });
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ error: 'An error occurred while deleting the shopping list' });
     }
   }
 });
 
-// Update an ingredient in the shopping list
-const updateIngredientShoppingList = asyncWrapper(async (req, res) => {
-  // Decode the URL-encoded ingredient name
-  const decodedIngredientName = decodeURIComponent(req.params.ingredientName);
-  const userId = req.user.userId;
-  const { ingredientName, ingredientAmount, ingredientUnit } = req.body;
+const shareShoppingList = asyncWrapper(async (req, res) => {
+  const { recipientEmail } = req.body;
+  const { userId } = req.user;
 
   try {
-    const shoppingList = await ShoppingList.findOne({ userID: userId });
+    if (!recipientEmail) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: 'Provide email to who you want to send shopping list',
+      });
+    }
+    // check if email is valid format
+    if (!emailValidation.test(recipientEmail)) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: 'Invalid email format',
+      });
+    }
+    // Fetch the user's details to get their email.
+    const sender = await User.findOne({ _id: userId });
+    if (!sender) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        message: 'User not found',
+      });
+    }
+
+    const userEmailAddress = sender.email;
+    const userNameAddress = sender.username;
+
+    // Fetch the user's shopping list.
+    const shoppingList = await ShoppingList.findOne({
+      userID: userId,
+    });
 
     if (!shoppingList) {
-      throw new NotFoundError('Shopping list not found');
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: 'Shopping list not found' });
     }
 
-    // Find the index of the ingredient to be updated
-    const ingredientIndex = shoppingList.ingredients.findIndex(
-      (item) => item.ingredientName === decodedIngredientName
-    );
+    if (shoppingList.ingredients.length === 0)
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        message: 'Shopping list is empty',
+      });
 
-    if (ingredientIndex === -1) {
-      throw new NotFoundError('Ingredient not found in shopping list');
-    }
+    let emailContainer = `
+    <div style="display: table-row; background-color: #f2f2f2; font-size: 16px; border-bottom:1px solid #ddd;">
+        <div style="display: table-cell; width: 300px; padding: 10px; border-right: 1px solid #ddd; font-weight: bold;">Ingredient Name</div>
+        <div style="display: table-cell; width: 300px; padding: 10px; border-right: 1px solid #ddd; font-weight: bold;">Amount</div>
+        <div style="display: table-cell; width: 300px; padding: 10px; font-weight: bold;">Unit</div>
+    </div>
+`;
+    shoppingList.ingredients.forEach((item) => {
+      emailContainer += `
+    <div style="display: table-row; border-bottom: 1px solid #ddd; font-size: 16px">
+        <div style="display: table-cell; width: 300px;padding: 10px; border-right: 1px solid #ddd;">${item.ingredientName}</div>
+        <div style="display: table-cell; width: 300px; padding: 10px; border-right: 1px solid #ddd;">${item.ingredientAmount}</div>
+        <div style="display: table-cell; width: 300px; padding: 10px;">${item.ingredientUnit}</div>
+    </div>
+`;
+    });
+    const transporter = await createTransporter();
+    const mailOptions = {
+      from: process.env.FROM_EMAIL,
+      to: recipientEmail,
+      subject: `Shopping list sent by ${userEmailAddress}`,
+      text: `${userEmailAddress} sent you shopping list.`,
+      html: getHtmlTemplate('emailSentShopList.html', {
+        userNameAddress,
+        userEmailAddress,
+        recipientEmail,
+        emailContainer,
+      }),
+    };
 
-    // Update the ingredient properties
-    shoppingList.ingredients[ingredientIndex].ingredientName = ingredientName;
-    shoppingList.ingredients[ingredientIndex].ingredientAmount = ingredientAmount;
-    shoppingList.ingredients[ingredientIndex].ingredientUnit = ingredientUnit;
+    await transporter.sendMail(mailOptions);
 
-    await shoppingList.save();
+    const confirmationMailOptions = {
+      from: process.env.FROM_EMAIL,
+      to: userEmailAddress,
+      subject: `Shopping list received`,
+      text: `Your shopping list was sent successfully to ${recipientEmail}`,
+      html: getHtmlTemplate('emailConfirmSentShopList.html', {
+        userEmailAddress,
+        recipientEmail,
+      }),
+    };
 
-    res.status(200).json({ message: 'Ingredient updated in shopping list' });
+    // Send the confirmation message to the user
+    await transporter.sendMail(confirmationMailOptions);
+
+    return res
+      .status(StatusCodes.OK)
+      .json({ message: 'Email sent successfully' });
   } catch (error) {
-    console.error('Error updating ingredient in shopping list:', error);
-    if (error instanceof NotFoundError) {
-      res.status(404).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: 'An error occurred while updating the ingredient' });
-    }
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: 'Error sending email', error: error.message });
   }
 });
-
 module.exports = {
+  addIngredientToShoppingList,
   addRecipeToShoppingList,
   createOrUpdateShoppingList,
   getShoppingList,
+  updateIngredientShoppingList,
   deleteIngredientShoppingList,
   deleteShoppingList,
-  updateIngredientShoppingList,
+  shareShoppingList,
 };

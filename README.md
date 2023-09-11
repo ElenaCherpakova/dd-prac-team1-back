@@ -1,22 +1,66 @@
-# Back-End Repo for Node/React Practicum
+# Olivier's Back-End Repo for Node/React Practicum
 
-This repository contains the backend code for Node/React Practicum. 
-It provides the necessary instructions to set up and run the backend.
+Welcome to Olivier's backend repository for the Node/React Practicum. Dive in to set up and operate the backend components crucial for Olivier's operations.
+
+**Front-End Repository:** 
+[Link to Front-End Repository](https://github.com/Code-the-Dream-School/dd-prac-team1-front)
+
+## Table of Contents
+
+- [Introduction](#introduction)
+  - [Running the project](#running-the-project)
+- [Screenshots](#screenshots)
+- [User Authentication & Management](#user-authentication--management)
+  - [User Authentication](#user-authentication)
+  - [Endpoints](#endpoints)
+- [Schemas & Data Structures](#schemas--data-structures)
+  - [User Schema](#user-schema)
+  - [Recipe Schema](#recipe-schema)
+  - [Meal Plan Schema](#meal-plan-schema)
+  - [ShoppingList Schema](#shoppinglist-schema)
+- [Recipe Functionality](#recipe-functionality)
+  - [Endpoints](#endpoints-1)
+- [Meal Planner Functionality](#meal-planner-functionality)
+  - [Endpoints](#endpoints-2)
+- [User-Recipe Association](#user-recipe-association)
+- [Error Handling](#error-handling)
+- [Shopping List API](#shopping-list-api)
+  - [Endpoints](#endpoints-3)
+- [Mail Functionality](#mail-functionality)
+  - [Endpoints](#endpoints-4)
+- [Technologies Used](#technologies-used)
+- [Authors](#authors)
+- [Contributing & Improvements](#contributing--improvements)
+- [License](#license)
+
+## Introduction
+
+Olivier combines AI and culinary tradition, revolutionizing kitchens with personalized recipes, meal plans, and shopping lists. More than just recipes, it's a chef and organizer in your pocket.
 
 ### Running the project
 
 1. Clone the repository onto your local device (following steps):
+
 ```
 git clone git@github.com:Code-the-Dream-School/dd-prac-team1-back.git
 cd dd-prac-team1-back
 npm install
 ```
+
 2. Set up Mongo database by installing [MongoDB](https://www.mongodb.com/)
-3. Obtain API key for [OPEN AI](https://platform.openai.com/account/api-keys)
-4. Copy the `.env.example` file and rename it to `.env`: 
+3. Obtain the following API Keys:
+
+   - [OPEN AI](https://platform.openai.com/account/api-keys)
+   - [Bing](https://portal.azure.com/)
+   - [Cloudinary](https://cloudinary.com/)
+   - [GoogleAPIs](https://console.cloud.google.com/)
+
+4. Copy the `.env.example` file and rename it to `.env`:
+
 ```
 cp .env.example .env
 ```
+
 5. Replace the placeholders with your specific values:
 
 ```PORT = <your_desired_port_number>
@@ -26,88 +70,191 @@ JWT_LIFETIME = <your_desired_jwt_lifetime>
 SESSION_SECRET = <your_unique_session_secret_key>
 NODE_ENV=<your_environment>
 OPENAI_API_KEY = <your_openai_api_secret_key>
+BING_IMAGE_SEARCH_API_KEY =<your_bing_api_secret_key>
+CLOUD_NAME =  <your_cloudinary_cloud_name>
+CLOUD_API_KEY = <your_cloudinary_api_key>
+CLOUD_API_SECRET = <your_cloudinary_api_secret_key>
+FROM_EMAIL = <your_email_address>
+CLIENT_ID=<your_client_id>
+CLIENT_SECRET=<your_client_secret>
+REDIRECT_URI=<your_redirect_uri>
+REFRESH_TOKEN=<your_refresh_token>
 ```
 
 6. Run `npm run start` to start the development server
 7. The app will be served at <http://localhost:3000/>.
 8. Your back-end server is now running. You can now run the front-end app.
 
-# MongoDB Configuration
+## Screenshots
+#### AI Recipe Retrieval
+![AI Recipe Retrieval](public/images/gif_1.gif) 
 
-MongoDB is used to store user data, recipes, and manage user sessions. 
-he database structure includes collections for users and recipes, as well as a session store for user authentication.
+#### Manually Add a Recipe
+![Manually Add a Recipe](public/images/gif_2.gif)
 
-1. Session Configuration. Session handling is crucial for user authentication and maintaining user state. 
-The express-session package is used along with connect-mongodb-session to manage sessions and store them in MongoDB.
+#### Search recipes by category, tag, or keyword. Edit recipe details.
+![Search Recipe by categories, tags and using search bar. Edit Recipe](public/images/gif_3.gif)
 
-2. User Schema. The user schema defines the structure of user data stored in the MongoDB database. 
-It stores user information, including usernames, email addresses, and hashed passwords. 
-The schema also includes methods for password hashing, JWT token creation, and password comparison
+#### Meal Planner
+![Meal Planner](public/images/gif_4.gif)
 
-3. The recipe schema defines the structure of recipe data stored in the MongoDB database. 
-It stores recipe information, including recipe name, ingredients, serving size, cooking instructions, nutrition info, meal preparation time, recipe category, special diet type, recipe tags, complexity level and meal image. 
-It uses subdocuments for recipe ingredients and tags.
+#### Shopping List
+![Shopping List](public/images/gif_5.gif)
+## User Authentication & Management
+### User Authentication
 
-# Recipe CRUD (create, read, update, delete) Functionality
+Managing user sessions and ensuring security is paramount. The process involves:
 
-An overview of the CRUD (Create, Read, Update, Delete) backend functionality for recipes.
-This functionality allows users to manage recipes, whether they are manually entered or generated by an AI assistant.
+- Registering new users
+- Logging in and out
+- Password management (including forgotten and reset functions)
 
-Endpoints: 
+### Endpoints
 
-1. Endpoints:
-- Fetch AI Recipe. This endpoint fetches a recipe using the OpenAI API based on user input:                                                     POST /api/v1/recipes
-- Create AI Recipe. The created AI recipe is stored in the DB:                                                                                      POST /api/v1/recipes/add-ai
-- Create Manual Recipe. This endpoint allows authenticated users to manually create a new recipe. The created recipe is stored in the database: POST /api/v1/recipes/add-manual
- -Get All Recipes. This endpoint retrieves all recipes created by the authenticated user, including both manually entered and AI-generated recipes: GET /api/v1/recipes
-- Get Recipe by ID. Retrieves a specific recipe by its ID, whether it was manually entered or AI-generated:                                         GET /api/v1/recipes/:recipeId
-- Update Recipe. Allows the authenticated user to update a specific recipe, whether it was manually entered or AI-generated.:                   PATCH /api/v1/recipes/:recipeId
-- Delete Recipe. Allows the authenticated user to delete a specific recipe, whether it was manually entered or AI-generated:                        DELETE /api/v1/recipes/:recipeId
+| HTTP Verbs | Endpoints                          | Action          |
+| ---------- | ---------------------------------- | --------------- |
+| POST       | /api/v1/auth/register              | Register User   |
+| POST       | /api/v1/auth/login                 | Login User      |
+| POST       | /api/v1/auth/logout                | Logout User     |
+| POST       | /api/v1/auth/forget-password       | Forgot Password |
+| PUT        | /api/v1/auth/reset-password/:token | Reset Password  |
 
-2. Authentication:
-Users must be authenticated to use these endpoints. Authentication tokens can be obtained by logging in. Users can only create, retrieve, update, and delete recipes that they have created.
+**Note**: Proper validation and error handling are implemented for user security.
 
-4. User-Recipe association
-When a user creates a manual recipe or an AI-generated recipe, the 'recipeCreatedBy' field is set to the user's unique identifier. This ensures that each recipe is linked to the user who created it. When retrieving, updating, or deleting a recipe, the user's authentication token is used to identify the user. The user's token is verified, and the associated recipes are accessed or modified based on the user's authentication.
+## Schemas & Data Structures
 
-5. Error Handling
-All responses follow a consistent format. When errors occur, appropriate HTTP status codes are returned along with error messages in the response body.
+### User Schema
 
-# Shopping List API
+- Defines user data structure: usernames, emails, and hashed passwords.
+- Includes methods for password management and JWT token creation.
 
-1. The Shopping List API provides functionality for users to create and manage their shopping lists. 
-Users can add recipe ingredients to their shopping list, and duplicate ingredients will be summed up.
+### Recipe Schema
 
-2. Endpoints    
-    
-    2.1. Add Recipe Ingredients to Shopping List
-Endpoint: POST /api/v1/shopping-list/:recipeId
-Description: Add ingredients of a specific recipe to the user's shopping list. Duplicated ingredients will be summed up.
-Request Parameters:recipeId: ID of the recipe to add ingredients from
-Authorization: Required (User must be authenticated)
-Response: 201 Created if successful, with a JSON message indicating success.    
-    2.2. Get User's Shopping List
-Endpoint: GET /api/v1/shopping-list
-Description: Retrieve the user's shopping list containing all added ingredients.
-Authorization: Required (User must be authenticated)
-Response: 200 OK with a JSON object representing the user's shopping list.
-        2.3. DELETE Specific Ingredient in the Shopping list
-Endpoint: DELETE /api/v1/shopping-list/:ingredientName
-Description: Delete a specific ingredient from the shopping list by providing its name URL-encoded in the URL.
-Authorization: Required (User must be authenticated). 
-    Front-End Encoding/Decoding: Encoding: Before sending the request, need to encode the ingredient name using encodeURIComponent() to handle      spaces and special characters. Decoding: The server automatically decodes the URL-encoded ingredient name using decodeURIComponent() for    accurate processing.
-Response: 200 OK with a JSON object representing the success message.
-    2.4. DELETE the Shopping list
-Endpoint: DELETE /api/v1/shopping-list/
-Description: An authorized user can clear the entire shopping list
-Authorization: Required (User must be authenticated). 
-Response: 200 OK with a JSON object representing the success message.
-    2.5. PUT Update Ingredient in Shopping list
-Endpoint: PUT /api/v1/shopping-list/:ingredientName
-Description: manage shopping list by providing of the user with the ability to update ingredient in the shopping list.
-Authorization: Required (User must be authenticated)
-Response: 200 OK with a JSON object representing the user's shopping list.
+- Defines recipe data, including:
+  - Name
+  - Ingredients
+  - Cooking instructions
+  - Nutrition info
+  - Image, and more.
+- Uses subdocuments for ingredients and tags.
 
-3. Usage
-User is required to be authenticated.The recipe's ingredients added to the shopping list by sending a POST request to the appropriate endpoint with the recipe ID.The shopping list is retrieved by sending a GET request to the /shopping-list endpoint.
-Duplicate ingredients from multiple recipes will be summed up in the shopping list.
+### Meal Plan Schema
+
+- Structured to include information like:
+  - Date
+  - Meals (Breakfast, Lunch, Dinner, Snacks)
+  - Notes
+
+### ShoppingList Schema
+
+- Defines shopping list data structure:
+  - userId: Link to a unique user
+  - Ingredients: List of items with their name, amount, and unit of measurement.
+
+## Recipe Functionality
+
+Allows users to manage their recipes.
+
+### Endpoints
+
+| HTTP Verbs | Endpoints                  | Action               |
+| ---------- | -------------------------- | -------------------- |
+| POST       | /api/v1/recipes            | Fetch AI Recipe      |
+| POST       | /api/v1/recipes/add-ai     | Create AI Recipe     |
+| POST       | /api/v1/recipes/add-manual | Create Manual Recipe |
+| GET        | /api/v1/recipes            | Get All Recipes      |
+| GET        | /api/v1/recipes/:recipeId  | Get Recipe by ID     |
+| PATCH      | /api/v1/recipes/:recipeId  | Update Recipe        |
+| DELETE     | /api/v1/recipes/:recipeId  | Delete Recipe        |
+
+**Note**: Authentication is required. Only creators can modify their recipes.
+
+## Meal Planner Functionality
+
+Allows users to create, view, update, and delete their meal plans.
+
+### Endpoints
+
+| HTTP Verbs | Endpoints                | Action             |
+| ---------- | ------------------------ | ------------------ |
+| GET        | /api/v1/meal-planner/    | Get All Meal Plans |
+| POST       | /api/v1/meal-planner/    | Create Meal Plan   |
+| PUT        | /api/v1/meal-planner/:id | Update Meal Plan   |
+| DELETE     | /api/v1/meal-planner/:id | Delete Meal Plan   |
+
+**Note**: Authentication is required. Only the creators can modify their meal plans.
+
+## User-Recipe Association
+
+- When a user creates a recipe, the `recipeCreatedBy` field is assigned their unique ID.
+- Authentication tokens ensure security.
+
+## Error Handling
+
+Responses follow a consistent format. Errors return appropriate HTTP status codes and messages.
+
+## Shopping List API
+
+Allows users to manage shopping lists with functionalities like adding recipe ingredients.
+
+### Endpoints
+
+| HTTP Verbs | Endpoints                             | Action                                           |
+| ---------- | ------------------------------------- | ------------------------------------------------ |
+| POST       | /api/v1/shopping-list/:recipeId       | Add All Ingredients from Recipe to Shopping List |
+| GET        | /api/v1/shopping-list                 | Get Shopping List                                |
+| DELETE     | /api/v1/shopping-list/:ingredientName | Delete Ingredient                                |
+| DELETE     | /api/v1/shopping-list/                | Clear Shopping List                              |
+| PUT        | /api/v1/shopping-list/:ingredientName | Update Ingredient Amount                         |
+| POST       | /api/v1/shopping-list/add-ingredient  | Add Ingredient                                   |
+
+**Note**: Authentication is required.
+
+## Mail Functionality
+
+### Endpoints
+
+| HTTP Verbs | Endpoints        | Action        |
+| ---------- | ---------------- | ------------- |
+| POST       | /api/v1/sendmail | Send an Email |
+
+**Note**: Authentication is required. Only authorized users can send emails.
+
+## Technologies Used
+
+- [NodeJS](https://nodejs.org/)
+- [ExpressJS](https://www.expresjs.org/)
+- [MongoDB](https://www.mongodb.com/)
+- [Mongoose ODM](https://mongoosejs.com/)
+- [jsonwebtoken](https://jwt.io/)
+- [bcryptjs](https://github.com/dcodeIO/bcrypt.js/blob/master/README.md)
+- [OPEN AI](https://platform.openai.com/account/api-keys)
+- [Bing](https://portal.azure.com/)
+- [Cloudinary](https://cloudinary.com/)
+- [Nodemailer](https://nodemailer.com/)
+- [GoogleAPIs](https://console.cloud.google.com/)
+
+## Authors
+
+| Frontend                                             | Backend                                                |
+| ---------------------------------------------------- | ------------------------------------------------------ |
+| [Anna Pestova](https://github.com/AnnaPestova1)      | [Aigul Yedigeyeva](https://github.com/AigulY)          |
+| [Anna Solovykh](https://github.com/AnnaSolovykh)     | [Elena Cherpakova](https://github.com/ElenaCherpakova) |
+| [Elena Gornovoy](https://github.com/ElenaGor8)       |                                                        |
+| [Svetlana Beynik](https://github.com/SvetlanaBeynik) |                                                        |
+
+## Contributing & Improvements
+
+We're always looking to improve and enhance our project. If you have suggestions, improvements, or find any bugs, please feel free to open a pull request or an issue on our GitHub repository.
+
+Before submitting a pull request, please ensure the following:
+
+1. Your code is well-documented and follows the project's coding style.
+2. Your changes are well-tested and do not introduce new bugs.
+3. Include a detailed description of the changes you are proposing.
+
+We appreciate all contributions and look forward to collaborating with you!
+
+## License
+
+This project is available for use under the MIT License.
