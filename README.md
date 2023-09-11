@@ -2,6 +2,9 @@
 
 Welcome to Olivier's backend repository for the Node/React Practicum. Dive in to set up and operate the backend components crucial for Olivier's operations.
 
+**Front-End Repository:** 
+[Link to Front-End Repository](https://github.com/Code-the-Dream-School/dd-prac-team1-front)
+
 ## Table of Contents
 
 - [Introduction](#introduction)

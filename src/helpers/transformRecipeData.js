@@ -74,7 +74,6 @@ const transformRecipeData = (openAIOutput) => {
     const matches = ingredient.quantity.match(quantityRegex);
     let quantityValue = matches && matches[0] ? matches[0] : '';
 
-    console.log(ingredients);
     return {
       ingredientName: ingredient.name,
       ingredientAmount: convertIngredientAmountIntoInteger(quantityValue),
